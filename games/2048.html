@@ -749,13 +749,18 @@ async function mergeAll(groups, chain){
   await wait(205);
 
   let gained = 0;
+  // сперва проставляем новые значения и снимаем класс 'pop' у всех разом —
+  // одно вынужденное перестроение layout на весь пакет слияний, а не по одному на блок
   for(const p of plan){
     p.target.v = p.nv;
     p.target.seed = ++seedNo;     // результат становится центром следующего звена
     style(p.target);
     maxTile = Math.max(maxTile, p.nv);
     p.target.el.style.setProperty('--tf', `translate(${px(p.tc)}px,${py(p.tr)}px)`);
-    p.target.el.classList.remove('pop'); void p.target.el.offsetWidth;
+    p.target.el.classList.remove('pop');
+  }
+  void els.tiles.offsetWidth; // единственный синхронный reflow на весь кадр слияния
+  for(const p of plan){
     p.target.el.classList.add('pop');
     const add = p.nv * chain * p.n;
     gained += add;
@@ -805,11 +810,24 @@ function hideCombo(){
     els.comboCheer.classList.remove('on');
   }, 1400);
 }
+// очередь тостов: при частых цепочках каждое сообщение должно доиграть свою
+// анимацию (1.2с) полностью, а не обрываться следующим вызовом на середине
+const TOAST_MS = 1200, TOAST_QUEUE_MAX = 3;
+let toastQueue = [], toastBusy = false;
 function toast(k, t, color){
-  els.toastK.textContent = k;
-  els.toastT.textContent = t;
-  els.toastT.style.color = color || '#FFF6E5';
+  toastQueue.push({k, t, color});
+  if(toastQueue.length > TOAST_QUEUE_MAX) toastQueue.splice(1, toastQueue.length - TOAST_QUEUE_MAX);
+  if(!toastBusy) playNextToast();
+}
+function playNextToast(){
+  const next = toastQueue.shift();
+  if(!next){ toastBusy = false; return; }
+  toastBusy = true;
+  els.toastK.textContent = next.k;
+  els.toastT.textContent = next.t;
+  els.toastT.style.color = next.color || '#FFF6E5';
   els.toast.classList.remove('show'); void els.toast.offsetWidth; els.toast.classList.add('show');
+  setTimeout(playNextToast, TOAST_MS);
 }
 function popText(r, c, txt){
   const d = document.createElement('div');
@@ -884,6 +902,7 @@ function reset(){
   queue = []; busy = false; over = false; uid = 0; seedNo = 0;
   fall = null; fastFall = false;
   paused = false;
+  toastQueue = []; toastBusy = false; els.toast.classList.remove('show');
   els.pause.classList.remove('on');
   els.combo.classList.remove('on');
   $('pauseBtn').textContent = '❚❚ ПАУЗА';

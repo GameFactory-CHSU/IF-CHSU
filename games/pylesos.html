@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Пылесосный переход · Румба-9000</title>
+<title>ДЕПЛОЙ.EXE · Переход в прод</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --asphalt:#2E3238;
-  --asphalt-dark:#212429;
-  --clean:#4C545C;
-  --paint:#E8E4D9;
-  --roomba:#1F7AE0;
-  --neon:#6FD3FF;
+  --asphalt:#0E1A16;
+  --asphalt-dark:#081310;
+  --clean:#1C3830;
+  --paint:#D8FFE8;
+  --roomba:#20E070;
+  --neon:#35E08A;
   --charge:#7CE38B;
-  --alarm:#FF4D4D;
-  --ink:#0D0F13;
-  --panel:rgba(13,15,19,.78);
-  --line:rgba(111,211,255,.28);
+  --alarm:#FF4D6D;
+  --ink:#04120C;
+  --panel:rgba(4,18,12,.82);
+  --line:rgba(53,224,138,.32);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -38,11 +38,16 @@ body{
   max-height:100vh;
   border-radius:18px;
   overflow:hidden;
-  box-shadow:0 0 0 1px rgba(111,211,255,.14), 0 30px 90px rgba(0,0,0,.75);
+  box-shadow:0 0 0 1px rgba(53,224,138,.16), 0 30px 90px rgba(0,0,0,.75);
+}
+#stage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:repeating-linear-gradient(180deg, rgba(53,224,138,.05) 0 1px, transparent 1px 3px);
+  mix-blend-mode:overlay;
 }
 canvas{display:block;width:100%;height:100%;background:var(--asphalt-dark);touch-action:none}
 
-/* --- HUD: диагностическая панель самого пылесоса --- */
+/* --- HUD: телеметрия процесса-деплоя --- */
 #hud{position:absolute;inset:0;pointer-events:none;padding:14px 14px 0;display:flex;flex-direction:column;gap:8px}
 .panel{
   background:var(--panel);
@@ -115,33 +120,33 @@ button:focus-visible{outline:2px solid var(--paint);outline-offset:3px}
   <canvas id="cv" width="540" height="900"></canvas>
 
   <div id="hud" class="hidden">
-    <div class="panel gauge">ЗАРЯД
+    <div class="panel gauge">РЕСУРС CPU
       <div class="bar"><i id="bar"></i></div>
       <span id="pct">100%</span>
     </div>
     <div class="stats">
-      <div class="panel">ДО КОВРА <b id="dist">500 м</b></div>
-      <div class="panel">МУСОР <b id="trash">0 / 0</b></div>
+      <div class="panel">ДО PROD <b id="dist">500 Кбит</b></div>
+      <div class="panel">ПАТЧИ <b id="trash">0 / 0</b></div>
     </div>
-    <div class="panel" id="ticker">СИСТЕМА: ВЫХОД НА МАГИСТРАЛЬ</div>
+    <div class="panel" id="ticker">СИСТЕМА: ВЫХОД В СЕТЬ</div>
   </div>
 
   <div id="screens">
     <div class="card" id="cardMenu">
-      <h1><small>РУМБА-9000</small>Пылесосный переход</h1>
-      <p class="lede">Балкон был открыт. Сквозняк сделал остальное.<br>
-      На той стороне магистрали — ковёр, который никто, кроме вас, не пропылесосит. Заряда мало, машин много.</p>
+      <h1><small>ПРОЦЕСС #904</small>ДЕПЛОЙ.EXE</h1>
+      <p class="lede">Пул-реквест смёржили в пятницу вечером. Дедлайн горит.<br>
+      На той стороне сети — прод-сервер, который ждёт только вас. Ресурсов мало, багов и вирусов в трафике много.</p>
       <div class="keys">
         <span class="key"><em>Пробел</em> прыжок</span>
-        <span class="key"><em>← →</em> наклон</span>
+        <span class="key"><em>← →</em> смена канала</span>
         <span class="key"><em>Тап</em> прыжок · <em>Свайп</em> руль</span>
       </div>
-      <button id="btnStart">ПОЕХАЛИ</button>
-      <button class="ghost hidden" id="btnNight">РЕЖИМ «НОЧНОЙ УБОРЩИК»</button>
+      <button id="btnStart">ЗАПУСТИТЬ</button>
+      <button class="ghost hidden" id="btnNight">РЕЖИМ «НОЧНАЯ СМЕНА»</button>
     </div>
 
     <div class="card hidden" id="cardEnd">
-      <h1><small id="endTag">ОТЧЁТ ОБ УБОРКЕ</small><span id="endTitle">Идеальная чистота!</span></h1>
+      <h1><small id="endTag">ОТЧЁТ О ДЕПЛОЕ</small><span id="endTitle">Деплой без единого бага!</span></h1>
       <div class="report" id="report"></div>
       <button id="btnNext">ДАЛЬШЕ</button>
       <button class="ghost" id="btnMenu">В НАЧАЛО</button>
@@ -156,15 +161,16 @@ const CFG={W:540,H:900,PY:640,PPM:14,ROLL:7,LANE:90,X0:60,X1:480,R:23,
   STEER:275,AIR:365,JUMP_T:.5,JUMP_H:40,DRAIN:1,HIT:30,KNOCK:180,ROCK:10,TRASH:5,DOCK:20};
 
 const LEVELS=[
-  {m:500,dens:.50,spd:1.00,name:"УРОВЕНЬ 1 · ПРОСПЕКТ"},
-  {m:800,dens:.62,spd:1.12,name:"УРОВЕНЬ 2 · РАЗВЯЗКА"},
-  {m:1200,dens:.72,spd:1.26,name:"УРОВЕНЬ 3 · МАГИСТРАЛЬ"}
+  {m:500,dens:.50,spd:1.00,name:"УРОВЕНЬ 1 · ЛОКАЛЬНАЯ СЕТЬ"},
+  {m:800,dens:.62,spd:1.12,name:"УРОВЕНЬ 2 · ОБЛАКО"},
+  {m:1200,dens:.72,spd:1.26,name:"УРОВЕНЬ 3 · PROD-КЛАСТЕР"}
 ];
 
+/* car = фоновые процессы, truck = баги (крупные, тормозят), bike = вирусы (мелкие, быстрые) */
 const VEH={
-  car:{w:66,h:38,spd:[110,190],colors:["#D94F3D","#E4B23A","#4F9BD9","#D8DCE0","#3FAE7A","#B0574F"]},
-  truck:{w:162,h:46,spd:[85,132],colors:["#4A5560","#8A8F98","#5C6B57"]},
-  bike:{w:32,h:18,spd:[245,335],colors:["#1D1F24","#7A1F1F"]}
+  car:{w:66,h:38,spd:[110,190],colors:["#3AA0FF","#35E08A","#8B7CF6","#7DD3FC","#4ADE80","#5C9CF5"]},
+  truck:{w:162,h:46,spd:[85,132],colors:["#FF5D5D","#F5A623","#E0435C"]},
+  bike:{w:32,h:18,spd:[245,335],colors:["#F0ABFC","#B06BFF"]}
 };
 
 const rnd=(a,b)=>a+Math.random()*(b-a);
@@ -423,7 +429,7 @@ function update(dt){
   stepParticles(dt);
 
   if(p.y>=S.goalY){
-    S.mode="finish";S.phase=0;Snd.finish();say("ЦЕЛЬ ДОСТИГНУТА · НАЧИНАЮ УБОРКУ");
+    S.mode="finish";S.phase=0;Snd.finish();say("PROD ДОСТИГНУТ · ЗАВЕРШАЮ ДЕПЛОЙ");
   }
   syncHud();
 }
@@ -470,31 +476,31 @@ function collide(){
 function takeTrash(it){
   it.gone=true;S.trashGot++;
   S.charge=Math.min(100,S.charge+CFG.TRASH);
-  Snd.pickup();say("МУСОР УНИЧТОЖЕН · +5%");
+  Snd.pickup();say("ПАТЧ ПРИМЕНЁН · +5%");
   float("+5%","#7CE38B");
-  for(let i=0;i<6;i++)puff(it.x,it.y,"rgba(232,228,217,.55)");
+  for(let i=0;i<6;i++)puff(it.x,it.y,"rgba(53,224,138,.55)");
 }
 
 function useDock(it){
   it.used=true;
   S.charge=Math.min(100,S.charge+CFG.DOCK);
-  Snd.dock();say("СТАНЦИЯ · БЫСТРАЯ ЗАРЯДКА +20%");
-  float("+20%","#6FD3FF");
-  for(let i=0;i<14;i++)S.parts.push({x:it.x,y:it.y,vx:rnd(-120,120),vy:rnd(-120,120),life:.5,max:.5,size:2.5,color:"#6FD3FF"});
+  Snd.dock();say("КЭШ-СЕРВЕР · УСКОРЕНИЕ +20%");
+  float("+20%","#35E08A");
+  for(let i=0;i<14;i++)S.parts.push({x:it.x,y:it.y,vx:rnd(-120,120),vy:rnd(-120,120),life:.5,max:.5,size:2.5,color:"#35E08A"});
 }
 
 function slip(it){
   it.gone=true;
   S.player.oilT=1;
-  Snd.oil();say("ЩЁТКИ ЗАЛИПЛИ · УПРАВЛЕНИЕ ПОТЕРЯНО",true);
-  float("СКОЛЬЖЕНИЕ","#E4B23A");
+  Snd.oil();say("СБОЙ РЕНДЕРА · УПРАВЛЕНИЕ ПОТЕРЯНО",true);
+  float("ГЛИТЧ","#F5A623");
 }
 
 function hitRock(it){
   it.gone=true;
   S.charge-=CFG.ROCK;S.player.y-=CFG.KNOCK*.35;S.player.invT=.7;S.shake=.5;
-  Snd.rock();say("УДАР О КАМЕНЬ · −10%",true);
-  float("−10%","#FF4D4D");
+  Snd.rock();say("КОНФЛИКТ СЛИЯНИЯ · −10%",true);
+  float("−10%","#FF4D6D");
   for(let i=0;i<8;i++)spark(it.x,it.y);
   if(S.charge<=0)die();
 }
@@ -506,15 +512,15 @@ function hitVehicle(){
   S.player.invT=1.4;
   S.player.jumpT=0;
   S.shake=1;
-  Snd.crash();say("ОШИБКА. ПЕРЕЗАГРУЗКА...",true);
-  float("−30%","#FF4D4D");
+  Snd.crash();say("ИСКЛЮЧЕНИЕ. ПЕРЕЗАПУСК...",true);
+  float("−30%","#FF4D6D");
   for(let i=0;i<18;i++)spark(S.player.x,S.player.y);
   if(S.charge<=0)die();
 }
 
 function die(){
   S.charge=0;S.mode="dead";S.phase=0;Snd.dead();Snd.ambient(0);
-  say("АККУМУЛЯТОР РАЗРЯЖЕН",true);
+  say("РЕСУРСЫ CPU ИСЧЕРПАНЫ",true);
 }
 
 function pushTrail(){
@@ -552,22 +558,22 @@ function draw(){
 
 function drawGround(){
   const night=S.night;
-  ctx.fillStyle=night?"#0A0E1A":"#191C21";
+  ctx.fillStyle=night?"#050B08":"#0A140F";
   ctx.fillRect(0,0,CFG.W,CFG.H);
 
-  // обочины
-  ctx.fillStyle=night?"#111726":"#23272C";
+  // обочины (внешняя шина)
+  ctx.fillStyle=night?"#08120D":"#0E1C16";
   ctx.fillRect(0,0,CFG.X0,CFG.H);
   ctx.fillRect(CFG.X1,0,CFG.W-CFG.X1,CFG.H);
 
-  // асфальт
-  ctx.fillStyle=night?"#151A26":"#2E3238";
+  // шина данных
+  ctx.fillStyle=night?"#0A1712":"#0E1A16";
   ctx.fillRect(CFG.X0,0,CFG.X1-CFG.X0,CFG.H);
 
-  // пыль
+  // пакеты трафика (фоновые частицы)
   const top=S.camY+CFG.H-CFG.PY, bottom=S.camY-CFG.PY;
   const c0=Math.floor(bottom/34),c1=Math.ceil(top/34);
-  ctx.fillStyle=night?"rgba(120,140,180,.10)":"rgba(190,196,204,.13)";
+  ctx.fillStyle=night?"rgba(53,224,138,.14)":"rgba(53,224,138,.16)";
   for(let j=c0;j<=c1;j++){
     for(let i=0;i<13;i++){
       const h=hash(i,j);
@@ -578,14 +584,14 @@ function drawGround(){
     }
   }
 
-  // бордюр
-  ctx.fillStyle=night?"#2A3348":"#585F68";
+  // край шины
+  ctx.fillStyle=night?"#173327":"#1E4534";
   ctx.fillRect(CFG.X0-8,0,8,CFG.H);
   ctx.fillRect(CFG.X1,0,8,CFG.H);
 
-  // разметка полос
+  // разметка каналов (пунктирные провода)
   const lane0=Math.floor((S.camY-CFG.PY)/CFG.LANE)-1;
-  ctx.strokeStyle=night?"rgba(190,205,255,.22)":"rgba(232,228,217,.32)";
+  ctx.strokeStyle=night?"rgba(53,224,138,.28)":"rgba(53,224,138,.30)";
   ctx.lineWidth=3;ctx.setLineDash([26,22]);
   for(let k=lane0;k<lane0+16;k++){
     const y=sy(k*CFG.LANE+CFG.LANE/2);
@@ -601,9 +607,9 @@ function drawGround(){
 function drawStart(){
   const y=sy(-24);
   if(y<-80||y>CFG.H+120)return;
-  ctx.fillStyle=S.night?"#1B2233":"#3A4048";
+  ctx.fillStyle=S.night?"#0E2A20":"#123528";
   ctx.fillRect(0,y,CFG.W,140);
-  ctx.fillStyle=S.night?"rgba(140,170,220,.14)":"rgba(232,228,217,.10)";
+  ctx.fillStyle=S.night?"rgba(53,224,138,.16)":"rgba(53,224,138,.12)";
   for(let i=0;i<9;i++)ctx.fillRect(i*62,y+8,54,124);
 }
 
@@ -611,18 +617,18 @@ function drawCarpet(){
   const y=sy(S.goalY);
   if(y>CFG.H+40)return;
   const h=260;
-  ctx.fillStyle=S.night?"#241A2E":"#6E3F52";
+  ctx.fillStyle=S.night?"#081D14":"#0A2A1C";
   ctx.fillRect(0,y-h,CFG.W,h);
-  ctx.fillStyle=S.night?"rgba(255,190,230,.09)":"rgba(255,220,200,.10)";
+  ctx.fillStyle=S.night?"rgba(53,224,138,.10)":"rgba(53,224,138,.12)";
   for(let i=0;i<14;i++)ctx.fillRect(18+i*36,y-h+16,20,h-32);
-  ctx.strokeStyle="rgba(232,228,217,.5)";ctx.lineWidth=5;
+  ctx.strokeStyle="rgba(53,224,138,.6)";ctx.lineWidth=5;
   ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CFG.W,y);ctx.stroke();
-  ctx.fillStyle="rgba(232,228,217,.85)";
+  ctx.fillStyle="rgba(53,224,138,.9)";
   for(let i=0;i<18;i++)if(i%2)ctx.fillRect(i*30,y-6,30,12);
   ctx.font="600 15px 'JetBrains Mono', monospace";
-  ctx.fillStyle=S.night?"#FFD9F0":"#FFE9D9";
+  ctx.fillStyle=S.night?"#D8FFE8":"#EAFFF2";
   ctx.textAlign="center";
-  ctx.fillText("КОВЁР · ЗОНА УБОРКИ",CFG.W/2,y-h+55);
+  ctx.fillText("PROD · ЗОНА ДЕПЛОЯ",CFG.W/2,y-h+55);
   ctx.textAlign="left";
 }
 
@@ -630,13 +636,13 @@ function drawTrail(){
   if(S.trail.length<2)return;
   ctx.save();
   ctx.lineCap="round";ctx.lineJoin="round";
-  ctx.strokeStyle=S.night?"rgba(120,170,255,.20)":"rgba(150,163,175,.55)";
+  ctx.strokeStyle=S.night?"rgba(53,224,138,.22)":"rgba(53,224,138,.4)";
   ctx.lineWidth=CFG.R*1.9;
   ctx.beginPath();
   ctx.moveTo(S.trail[0].x,sy(S.trail[0].y));
   for(const t of S.trail)ctx.lineTo(t.x,sy(t.y));
   ctx.stroke();
-  ctx.strokeStyle=S.night?"rgba(160,210,255,.16)":"rgba(214,222,230,.22)";
+  ctx.strokeStyle=S.night?"rgba(53,224,138,.18)":"rgba(53,224,138,.2)";
   ctx.lineWidth=CFG.R*1.9-9;
   ctx.stroke();
   ctx.restore();
@@ -656,46 +662,58 @@ function drawItems(){
   }
 }
 
+/* глитч-зона (бывшая масляная лужа) — визуальный сбой рендера с хроматической аберрацией */
 function drawOil(x,y,it){
   ctx.save();ctx.translate(x,y);ctx.rotate(it.rot);
   const g=ctx.createRadialGradient(0,0,2,0,0,it.r);
-  g.addColorStop(0,"rgba(20,22,30,.95)");
-  g.addColorStop(.6,"rgba(28,30,42,.85)");
-  g.addColorStop(1,"rgba(28,30,42,0)");
+  g.addColorStop(0,"rgba(6,10,14,.95)");
+  g.addColorStop(.6,"rgba(10,16,20,.85)");
+  g.addColorStop(1,"rgba(10,16,20,0)");
   ctx.fillStyle=g;
   ctx.beginPath();ctx.ellipse(0,0,it.r,it.r*.72,0,0,6.3);ctx.fill();
-  ctx.strokeStyle="rgba(120,90,200,.45)";ctx.lineWidth=2;
-  ctx.beginPath();ctx.ellipse(-3,-2,it.r*.55,it.r*.34,.4,0,6.3);ctx.stroke();
+  ctx.strokeStyle="rgba(255,77,109,.55)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(-3-2,-2,it.r*.55,it.r*.34,.4,0,6.3);ctx.stroke();
+  ctx.strokeStyle="rgba(53,224,138,.55)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(-3+2,-2,it.r*.55,it.r*.34,.4,0,6.3);ctx.stroke();
   ctx.restore();
 }
 
+/* конфликт слияния (бывший камень) — предупреждающий блок с полосами и маркером <<< */
 function drawRock(x,y,it){
-  ctx.save();ctx.translate(x,y);ctx.rotate(it.rot);
+  ctx.save();ctx.translate(x,y);ctx.rotate(it.rot*.15);
   ctx.fillStyle="rgba(0,0,0,.35)";
   ctx.beginPath();ctx.ellipse(2,5,it.r,it.r*.5,0,0,6.3);ctx.fill();
-  ctx.fillStyle="#6B7178";
-  ctx.beginPath();
-  ctx.moveTo(-it.r,4);ctx.lineTo(-it.r*.4,-it.r*.8);ctx.lineTo(it.r*.5,-it.r*.6);
-  ctx.lineTo(it.r,3);ctx.lineTo(0,it.r*.6);ctx.closePath();ctx.fill();
-  ctx.fillStyle="#8A9199";
-  ctx.beginPath();ctx.moveTo(-it.r*.4,-it.r*.8);ctx.lineTo(it.r*.5,-it.r*.6);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#2A120F";
+  roundRect(-it.r,-it.r*.72,it.r*2,it.r*1.44,4);ctx.fill();
+  ctx.strokeStyle="#FF5D5D";ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-it.r,-it.r*.72);ctx.lineTo(it.r,-it.r*.72);ctx.lineTo(it.r,it.r*.72);ctx.lineTo(-it.r,it.r*.72);ctx.closePath();ctx.stroke();
+  ctx.save();
+  ctx.beginPath();roundRect(-it.r,-it.r*.72,it.r*2,it.r*1.44,4);ctx.clip();
+  ctx.fillStyle="rgba(255,93,93,.22)";
+  for(let i=-2;i<3;i++){ctx.save();ctx.translate(i*10,0);ctx.rotate(.6);ctx.fillRect(-3,-30,5,60);ctx.restore();}
+  ctx.restore();
+  ctx.fillStyle="#FF5D5D";ctx.font="700 13px 'JetBrains Mono', monospace";ctx.textAlign="center";
+  ctx.fillText("<<<",0,4);
+  ctx.textAlign="left";
   ctx.restore();
 }
 
+/* кэш-сервер (бывшая станция зарядки) — буст ресурса CPU */
 function drawDock(x,y,it){
   ctx.save();ctx.translate(x,y);
   const pulse=.6+.4*Math.sin(S.t*4);
-  ctx.fillStyle=it.used?"rgba(90,100,110,.5)":`rgba(111,211,255,${.16*pulse+.1})`;
+  ctx.fillStyle=it.used?"rgba(70,90,80,.5)":`rgba(53,224,138,${.16*pulse+.1})`;
   ctx.fillRect(-it.r,-it.r*.7,it.r*2,it.r*1.4);
-  ctx.strokeStyle=it.used?"rgba(120,130,140,.6)":"#6FD3FF";
+  ctx.strokeStyle=it.used?"rgba(100,120,110,.6)":"#35E08A";
   ctx.lineWidth=2;ctx.strokeRect(-it.r,-it.r*.7,it.r*2,it.r*1.4);
-  ctx.fillStyle=it.used?"rgba(140,150,160,.7)":"#6FD3FF";
+  ctx.fillStyle=it.used?"rgba(140,160,150,.7)":"#35E08A";
   ctx.beginPath();
   ctx.moveTo(3,-13);ctx.lineTo(-6,2);ctx.lineTo(0,2);ctx.lineTo(-3,13);ctx.lineTo(7,-3);ctx.lineTo(1,-3);
   ctx.closePath();ctx.fill();
   ctx.restore();
 }
 
+/* патчи (бывший мусор): пакет данных / пройденный тест / лог-файл */
 function drawTrash(x,y,it){
   ctx.save();ctx.translate(x,y);ctx.rotate(it.rot+it.pull*8);
   const s=1-it.pull*.5;
@@ -703,17 +721,25 @@ function drawTrash(x,y,it){
   ctx.fillStyle="rgba(0,0,0,.3)";
   ctx.beginPath();ctx.ellipse(1,6,10,4,0,0,6.3);ctx.fill();
   if(it.kind==="can"){
-    ctx.fillStyle="#B7BEC6";ctx.fillRect(-6,-11,12,20);
-    ctx.fillStyle="#E4523D";ctx.fillRect(-6,-4,12,7);
-    ctx.fillStyle="#DDE3E9";ctx.fillRect(-6,-11,12,3);
+    // пакет данных
+    ctx.fillStyle="#1C3830";roundRect(-8,-11,16,20,3);ctx.fill();
+    ctx.strokeStyle="#35E08A";ctx.lineWidth=1.4;roundRect(-8,-11,16,20,3);ctx.stroke();
+    ctx.fillStyle="#35E08A";
+    ctx.fillRect(-5,-6,10,2);ctx.fillRect(-5,-1,7,2);ctx.fillRect(-5,4,9,2);
   }else if(it.kind==="cup"){
-    ctx.fillStyle="#E8E4D9";
-    ctx.beginPath();ctx.moveTo(-7,-10);ctx.lineTo(7,-10);ctx.lineTo(5,10);ctx.lineTo(-5,10);ctx.closePath();ctx.fill();
-    ctx.fillStyle="#8A5A3B";ctx.fillRect(-8,-12,16,4);
+    // пройденный тест — щит с галочкой
+    ctx.fillStyle="#123528";
+    ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(9,-7);ctx.lineTo(9,4);ctx.lineTo(0,12);ctx.lineTo(-9,4);ctx.lineTo(-9,-7);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="#7CE38B";ctx.lineWidth=1.6;ctx.stroke();
+    ctx.strokeStyle="#7CE38B";ctx.lineWidth=2;ctx.lineCap="round";ctx.lineJoin="round";
+    ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(-1,4);ctx.lineTo(5,-5);ctx.stroke();
   }else{
-    ctx.fillStyle="#F0EDE4";
-    ctx.beginPath();ctx.moveTo(-10,-7);ctx.lineTo(9,-9);ctx.lineTo(11,6);ctx.lineTo(-8,9);ctx.closePath();ctx.fill();
-    ctx.strokeStyle="rgba(120,125,130,.7)";ctx.lineWidth=1.4;
+    // лог-файл
+    ctx.fillStyle="#0E1F19";
+    ctx.beginPath();ctx.moveTo(-10,-9);ctx.lineTo(4,-9);ctx.lineTo(11,-2);ctx.lineTo(11,9);ctx.lineTo(-10,9);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="rgba(53,224,138,.55)";ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(-10,-9);ctx.lineTo(4,-9);ctx.lineTo(11,-2);ctx.lineTo(11,9);ctx.lineTo(-10,9);ctx.closePath();ctx.stroke();
+    ctx.strokeStyle="rgba(53,224,138,.65)";ctx.lineWidth=1.4;
     ctx.beginPath();ctx.moveTo(-6,-3);ctx.lineTo(6,-4);ctx.moveTo(-6,2);ctx.lineTo(5,1);ctx.stroke();
   }
   ctx.restore();
@@ -728,7 +754,14 @@ function drawVehicles(){
   }
 }
 
+/* car="процесс" (терминальное окно), truck="баг" (жук в трафике), bike="вирус" (шипастая частица) */
 function drawVehicle(v,y,dir){
+  if(v.type==="truck")return drawBug(v,y,dir);
+  if(v.type==="bike")return drawVirus(v,y,dir);
+  return drawProcess(v,y,dir);
+}
+
+function drawProcess(v,y,dir){
   const w=v.w,h=v.h;
   ctx.save();
   ctx.translate(v.x,y);
@@ -736,40 +769,89 @@ function drawVehicle(v,y,dir){
   ctx.beginPath();ctx.ellipse(0,h*.42,w*.52,h*.42,0,0,6.3);ctx.fill();
 
   if(S.night){ctx.shadowColor=v.color;ctx.shadowBlur=14}
-  // корпус (вид сверху-сбоку)
   ctx.fillStyle=shade(v.color,-.28);
   roundRect(-w/2,-h/2+4,w,h,7);ctx.fill();
   ctx.fillStyle=v.color;
   roundRect(-w/2,-h/2,w,h-4,7);ctx.fill();
   ctx.shadowBlur=0;
 
-  // крыша / кабина
-  ctx.fillStyle=shade(v.color,.16);
-  if(v.type==="truck"){
-    const cab=dir>0?w/2-40:-w/2+4;
-    roundRect(cab,-h/2+5,36,h-14,4);ctx.fill();
-    ctx.fillStyle="rgba(20,24,30,.55)";
-    for(let i=0;i<5;i++)ctx.fillRect(-w/2+44+i*22,-h/2+6,4,h-16);
-  }else if(v.type==="car"){
-    roundRect(-w*.22,-h/2+5,w*.46,h-14,5);ctx.fill();
-    ctx.fillStyle="rgba(30,40,52,.75)";
-    roundRect(-w*.19,-h/2+7,w*.4,h-18,4);ctx.fill();
-  }else{
-    ctx.fillStyle="#2A2E36";
-    ctx.beginPath();ctx.arc(0,0,h*.42,0,6.3);ctx.fill();
-  }
+  // «окно терминала» со строками кода, бегущими по направлению движения
+  ctx.fillStyle="rgba(6,12,10,.8)";
+  roundRect(-w*.22,-h/2+5,w*.46,h-14,5);ctx.fill();
+  ctx.fillStyle=shade(v.color,.55);
+  const off=(v.x*.02+S.t*dir*2.4)%6;
+  for(let i=0;i<3;i++)ctx.fillRect(-w*.17,-h/2+11+i*8+(off%2),w*(.12+hash(i,Math.floor(v.x))*.2),3);
 
-  // фары по направлению движения
+  // маячок-курсор по направлению движения
   const fx=dir>0?w/2-4:-w/2+4;
-  ctx.fillStyle=S.night?"#FFF3C4":"#FFE9A8";
+  ctx.fillStyle=Math.floor(S.t*6)%2?shade(v.color,.6):shade(v.color,-.1);
   ctx.fillRect(fx-(dir>0?3:0),-h/2+6,4,6);
   ctx.fillRect(fx-(dir>0?3:0),h/2-14,4,6);
-  if(S.night){
-    const g=ctx.createLinearGradient(fx,0,fx+dir*90,0);
-    g.addColorStop(0,"rgba(255,240,190,.35)");g.addColorStop(1,"rgba(255,240,190,0)");
-    ctx.fillStyle=g;
-    ctx.beginPath();ctx.moveTo(fx,-h/2+4);ctx.lineTo(fx+dir*95,-h*1.1);ctx.lineTo(fx+dir*95,h*1.1);ctx.lineTo(fx,h/2-4);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+function drawBug(v,y,dir){
+  const w=v.w,h=v.h;
+  ctx.save();
+  ctx.translate(v.x,y);
+  ctx.fillStyle="rgba(0,0,0,.42)";
+  ctx.beginPath();ctx.ellipse(0,h*.42,w*.5,h*.4,0,0,6.3);ctx.fill();
+
+  if(S.night){ctx.shadowColor=v.color;ctx.shadowBlur=16}
+  // ножки
+  ctx.strokeStyle=shade(v.color,-.2);ctx.lineWidth=4;ctx.lineCap="round";
+  for(let i=0;i<3;i++){
+    const lx=-w*.28+i*w*.28;
+    ctx.beginPath();ctx.moveTo(lx,-h*.3);ctx.lineTo(lx-10,-h*.62);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(lx,h*.3);ctx.lineTo(lx-10,h*.62);ctx.stroke();
   }
+  // панцирь-капсула
+  ctx.fillStyle=shade(v.color,-.25);
+  roundRect(-w/2,-h/2+4,w,h,h/2);ctx.fill();
+  ctx.fillStyle=v.color;
+  roundRect(-w/2,-h/2,w,h-4,h/2);ctx.fill();
+  // шов панциря
+  ctx.strokeStyle="rgba(0,0,0,.35)";ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0,-h/2+2);ctx.lineTo(0,h/2-6);ctx.stroke();
+  ctx.shadowBlur=0;
+  // голова + усики по направлению движения
+  const hx=dir>0?w/2-10:-w/2+10;
+  ctx.fillStyle=shade(v.color,.2);
+  ctx.beginPath();ctx.arc(hx,0,h*.32,0,6.3);ctx.fill();
+  ctx.strokeStyle=shade(v.color,.3);ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(hx+dir*6,-h*.2);ctx.lineTo(hx+dir*20,-h*.42);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(hx+dir*6,h*.2);ctx.lineTo(hx+dir*20,h*.42);ctx.stroke();
+  // глаза-варнинги
+  ctx.fillStyle=S.night?"#FFE082":"#FFD24C";
+  ctx.beginPath();ctx.arc(hx+dir*4,-5,3,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.arc(hx+dir*4,5,3,0,6.3);ctx.fill();
+  ctx.restore();
+}
+
+function drawVirus(v,y,dir){
+  const w=v.w,h=v.h,r=h*.42;
+  ctx.save();
+  ctx.translate(v.x,y);
+  ctx.fillStyle="rgba(0,0,0,.4)";
+  ctx.beginPath();ctx.ellipse(0,r*.9,r*1.1,r*.5,0,0,6.3);ctx.fill();
+
+  if(S.night){ctx.shadowColor=v.color;ctx.shadowBlur=16}
+  // шипы
+  ctx.strokeStyle=v.color;ctx.lineWidth=2.4;ctx.lineCap="round";
+  for(let i=0;i<8;i++){
+    const a=i/8*6.283+S.t*3*dir;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*r*.9,Math.sin(a)*r*.9);
+    ctx.lineTo(Math.cos(a)*r*1.55,Math.sin(a)*r*1.55);
+    ctx.stroke();
+    ctx.beginPath();ctx.arc(Math.cos(a)*r*1.6,Math.sin(a)*r*1.6,1.8,0,6.3);ctx.fillStyle=v.color;ctx.fill();
+  }
+  // ядро
+  ctx.fillStyle=shade(v.color,-.3);
+  ctx.beginPath();ctx.arc(0,0,r,0,6.3);ctx.fill();
+  ctx.fillStyle=v.color;
+  ctx.beginPath();ctx.arc(0,0,r*.72,0,6.3);ctx.fill();
+  ctx.shadowBlur=0;
   ctx.restore();
 }
 
@@ -793,29 +875,29 @@ function drawRoomba(){
 
   if(S.night){
     const g=ctx.createLinearGradient(0,-10,0,-180);
-    g.addColorStop(0,"rgba(140,220,255,.28)");g.addColorStop(1,"rgba(140,220,255,0)");
+    g.addColorStop(0,"rgba(53,224,138,.28)");g.addColorStop(1,"rgba(53,224,138,0)");
     ctx.fillStyle=g;
     ctx.beginPath();ctx.moveTo(-16,-8);ctx.lineTo(-70,-190);ctx.lineTo(70,-190);ctx.lineTo(16,-8);ctx.closePath();ctx.fill();
   }
 
-  // борт
-  ctx.fillStyle="#12457F";
+  // корпус-чип
+  ctx.fillStyle="#0B3325";
   ctx.beginPath();ctx.ellipse(0,6,CFG.R,CFG.R*.82,0,0,6.3);ctx.fill();
   // верхняя крышка
   const g=ctx.createRadialGradient(-7,-8,3,0,0,CFG.R+6);
-  g.addColorStop(0,"#5AA8F5");g.addColorStop(.55,"#1F7AE0");g.addColorStop(1,"#14528F");
+  g.addColorStop(0,"#8CFFC2");g.addColorStop(.55,"#20E070");g.addColorStop(1,"#0E7A45");
   ctx.fillStyle=g;
   ctx.beginPath();ctx.ellipse(0,0,CFG.R,CFG.R*.82,0,0,6.3);ctx.fill();
-  // бампер
-  ctx.strokeStyle="#0E3A6B";ctx.lineWidth=3;
+  // контур
+  ctx.strokeStyle="#0B3325";ctx.lineWidth=3;
   ctx.beginPath();ctx.ellipse(0,0,CFG.R-1,CFG.R*.82-1,0,0,6.3);ctx.stroke();
-  // приборная панель
-  ctx.fillStyle="rgba(10,16,26,.85)";
+  // терминал-экран с индикатором ресурса
+  ctx.fillStyle="rgba(4,12,9,.9)";
   roundRect(-11,-6,22,11,3);ctx.fill();
   const lowPower=S.charge<25;
-  ctx.fillStyle=lowPower?(Math.floor(S.t*6)%2?"#FF4D4D":"#5A1D1D"):S.charge<55?"#E4B23A":"#7CE38B";
+  ctx.fillStyle=lowPower?(Math.floor(S.t*6)%2?"#FF4D6D":"#5A1420"):S.charge<55?"#F5A623":"#7CE38B";
   ctx.fillRect(-8,-3,Math.max(2,15*S.charge/100),5);
-  // щётки
+  // сенсоры-спиннеры (индикация активного процесса)
   drawBrush(-CFG.R*.62,-CFG.R*.42);
   drawBrush(CFG.R*.62,-CFG.R*.42);
   ctx.restore();
@@ -823,12 +905,12 @@ function drawRoomba(){
 
 function drawBrush(bx,by){
   ctx.save();ctx.translate(bx,by);ctx.rotate(S.t*14);
-  ctx.strokeStyle="rgba(232,228,217,.75)";ctx.lineWidth=2;
+  ctx.strokeStyle="rgba(216,255,232,.85)";ctx.lineWidth=2;
   for(let i=0;i<3;i++){
     const a=i*2.09;
     ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*9,Math.sin(a)*9);ctx.stroke();
   }
-  ctx.fillStyle="#0E3A6B";ctx.beginPath();ctx.arc(0,0,3,0,6.3);ctx.fill();
+  ctx.fillStyle="#0B3325";ctx.beginPath();ctx.arc(0,0,3,0,6.3);ctx.fill();
   ctx.restore();
 }
 
@@ -887,7 +969,7 @@ function syncHud(){
   el("bar").style.background=pct<25?"var(--alarm)":pct<55?"#E4B23A":"var(--charge)";
   el("pct").textContent=pct+"%";
   el("hud").classList.toggle("low",pct<25);
-  el("dist").textContent=Math.max(0,Math.round((S.goalY-S.player.y)/CFG.PPM))+" м";
+  el("dist").textContent=Math.max(0,Math.round((S.goalY-S.player.y)/CFG.PPM))+" Кбит";
   el("trash").textContent=S.trashGot+" / "+S.trashTotal;
 }
 
@@ -905,7 +987,7 @@ function startRun(fresh){
   el("cardMenu").classList.add("hidden");
   el("cardEnd").classList.add("hidden");
   el("screens").classList.add("hidden");
-  say(lv.name+" · "+(S.leg?"ОБРАТНЫЙ ПУТЬ":"ВПЕРЁД К КОВРУ"));
+  say(lv.name+" · "+(S.leg?"ROLLBACK":"НА PROD"));
   Snd.ambient(1);
   syncHud();
 }
@@ -916,19 +998,19 @@ function endRun(){
   if(won&&perfect&&!S.unlocked){S.unlocked=true;el("btnNight").classList.remove("hidden")}
 
   const last=won&&S.level===LEVELS.length-1&&S.leg===1;
-  el("endTag").textContent=won?"ОТЧЁТ ОБ УБОРКЕ":"АВАРИЙНОЕ ЗАВЕРШЕНИЕ";
-  el("endTitle").textContent=last?"Хозяйка ничего не заметила"
-    :won?"Идеальная чистота!":"Аккумулятор разряжен";
+  el("endTag").textContent=won?"ОТЧЁТ О ДЕПЛОЕ":"СБОЙ ДЕПЛОЯ";
+  el("endTitle").textContent=last?"Продакшен не пострадал"
+    :won?"Деплой без единого бага!":"Ресурсы CPU исчерпаны";
 
   const passed=Math.round(Math.min(S.player.y,S.goalY)/CFG.PPM);
   el("report").innerHTML=`
-    <div><span>Пройдено</span><b>${passed} из ${cfgLeg().m} м</b></div>
-    <div><span>Мусора уничтожено</span><b class="${perfect?"good":""}">${S.trashGot} из ${S.trashTotal}${perfect?" · 100%":""}</b></div>
-    <div><span>Столкновений</span><b>${S.hits}</b></div>
-    <div><span>Остаток заряда</span><b>${Math.round(S.charge)}%</b></div>
-    ${perfect&&won?'<div><span>Открыт режим</span><b class="good">НОЧНОЙ УБОРЩИК</b></div>':""}`;
+    <div><span>Передано</span><b>${passed} из ${cfgLeg().m} Кбит</b></div>
+    <div><span>Патчей применено</span><b class="${perfect?"good":""}">${S.trashGot} из ${S.trashTotal}${perfect?" · 100%":""}</b></div>
+    <div><span>Столкновений с багами</span><b>${S.hits}</b></div>
+    <div><span>Остаток ресурса CPU</span><b>${Math.round(S.charge)}%</b></div>
+    ${perfect&&won?'<div><span>Открыт режим</span><b class="good">НОЧНАЯ СМЕНА</b></div>':""}`;
 
-  el("btnNext").textContent=last?"ЕЩЁ РАЗ":won?"ДАЛЬШЕ":"ПОВТОРИТЬ ПОПЫТКУ";
+  el("btnNext").textContent=last?"ЕЩЁ РАЗ":won?"ДАЛЬШЕ":"ПОВТОРИТЬ ДЕПЛОЙ";
   el("screens").classList.remove("hidden");
   el("cardEnd").classList.remove("hidden");
   el("hud").classList.add("hidden");
@@ -940,7 +1022,7 @@ function endRun(){
 el("btnStart").onclick=()=>startRun(true);
 el("btnNight").onclick=()=>{
   S.night=!S.night;
-  el("btnNight").textContent=S.night?"РЕЖИМ: НОЧНОЙ УБОРЩИК ✦":"РЕЖИМ «НОЧНОЙ УБОРЩИК»";
+  el("btnNight").textContent=S.night?"РЕЖИМ: НОЧНАЯ СМЕНА ✦":"РЕЖИМ «НОЧНАЯ СМЕНА»";
 };
 el("btnMenu").onclick=()=>{
   el("cardEnd").classList.add("hidden");

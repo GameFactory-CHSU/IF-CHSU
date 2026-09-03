@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>СТЕК · Тетрис</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#0A0C16;
+  --bg1:#12142450;
+  --panel:rgba(14,16,28,.82);
+  --line:rgba(140,160,255,.16);
+  --ink:#EAEBF7;
+  --muted:#8A90B5;
+  --neon:#7DD3FC;
+  --accent:#B14EFF;
+  --good:#39FF6A;
+  --warn:#FFD400;
+  --bad:#FF3B5C;
+  --cell:28px;
+  --gap:2px;
+  --r:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(900px 540px at 50% -10%, rgba(177,78,255,.18), transparent 62%),
+    radial-gradient(700px 420px at 90% 100%, rgba(125,211,252,.10), transparent 60%),
+    var(--bg0);
+  color:var(--ink);
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  touch-action:none;
+}
+#wrap{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  width:min(96vw, 880px);
+  max-height:100vh;padding:8px 0;
+}
+#topline{display:flex;gap:8px;width:100%}
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:7px 12px;backdrop-filter:blur(6px);
+}
+.stat{flex:1;text-align:center}
+.stat b{display:block;font-family:"Unbounded",sans-serif;font-size:16px;letter-spacing:-.01em;color:var(--neon)}
+.stat span{font-size:9.5px;letter-spacing:.16em;color:var(--muted)}
+
+#board-row{display:flex;gap:10px;width:100%;justify-content:center}
+#stage{
+  position:relative;border-radius:14px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--line), 0 26px 80px rgba(0,0,0,.7);
+}
+canvas{display:block;background:#0B0D1A}
+#side{display:flex;flex-direction:column;gap:8px;width:104px}
+.side-panel{text-align:center}
+.side-panel .lab{font-size:9px;letter-spacing:.16em;color:var(--muted);margin-bottom:6px}
+#nextCv{display:block;margin:0 auto;background:transparent}
+
+#ticker{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%) translateY(-6px);z-index:8;
+  max-width:calc(100% - 60px);
+  font-size:10.5px;letter-spacing:.1em;color:var(--neon);text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:rgba(9,10,18,.78);border:1px solid var(--line);border-radius:8px;
+  padding:5px 10px;backdrop-filter:blur(6px);pointer-events:none;
+  opacity:0;transition:opacity .25s, transform .25s;
+}
+#ticker.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+#touch{display:none;width:100%;gap:7px}
+#touch button{
+  flex:1;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:19px;
+  color:var(--ink);background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:12px;
+  padding:16px 0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+#touch button:active{background:rgba(255,255,255,.18);transform:scale(.96)}
+#touch button.accent{
+  background:linear-gradient(180deg, rgba(125,211,252,.28), rgba(125,211,252,.12));
+  border-color:rgba(125,211,252,.55);color:var(--neon);font-size:22px;
+}
+#touch button.accent:active{background:linear-gradient(180deg, rgba(125,211,252,.42), rgba(125,211,252,.2))}
+@media (pointer:coarse){#touch{display:flex}}
+
+/* ---------- mobile / narrow layout ---------- */
+@media (max-width:640px){
+  #wrap{width:99vw;max-width:560px;padding:6px 0;gap:6px}
+  #topline{gap:6px}
+  .panel{padding:5px 6px}
+  .stat b{font-size:13.5px}
+  .stat span{font-size:7.8px;letter-spacing:.1em}
+  #board-row{flex-direction:column;align-items:center;gap:6px}
+  #side{flex-direction:row;width:auto;gap:0;align-items:stretch}
+  #side .side-panel{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:4px 14px}
+  #side .side-panel .lab{margin:0}
+  #ticker{font-size:9.5px;padding:4px 8px;top:6px}
+}
+@media (max-width:640px) and (pointer:coarse){
+  #wrap{padding-bottom:2px}
+  #touch button{padding:15px 0}
+}
+
+#screens{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;z-index:9}
+.card{
+  width:100%;max-width:340px;background:rgba(9,10,18,.92);border:1px solid var(--line);
+  border-radius:16px;padding:24px 20px;text-align:center;backdrop-filter:blur(10px);
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.card.hidden{display:none}
+h1{font-family:"Unbounded",sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em}
+h1 small{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.3em;color:var(--neon);margin-bottom:10px}
+.lede{font-size:12.5px;line-height:1.7;color:var(--muted);margin:14px 0 18px}
+.keys{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.key{border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:10px;letter-spacing:.06em;color:#C7CCE6}
+.key em{font-style:normal;color:var(--neon)}
+button.go{
+  font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;letter-spacing:.16em;
+  color:#0A0C16;background:var(--neon);border:0;border-radius:8px;
+  padding:13px 22px;cursor:pointer;width:100%;
+  box-shadow:0 0 24px rgba(125,211,252,.3);
+}
+.report{text-align:left;font-size:12px;line-height:2;margin:16px 0 20px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:12px 0}
+.report div{display:flex;justify-content:space-between;gap:10px}
+.report span{color:var(--muted)}
+.report b{color:var(--ink);font-weight:700}
+.report b.good{color:var(--good)}
+#sound{position:absolute;right:10px;bottom:10px;z-index:10;padding:7px 10px;font-size:10px;
+  background:rgba(9,10,18,.8);color:var(--neon);border:1px solid var(--line);border-radius:8px;
+  font-family:"JetBrains Mono",monospace;cursor:pointer}
+.hidden{display:none !important}
+#pauseHint{position:absolute;left:10px;bottom:10px;z-index:10;font-size:10px;letter-spacing:.12em;color:var(--muted);
+  background:rgba(9,10,18,.6);border-radius:6px;padding:4px 7px}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="topline">
+    <div class="panel stat"><b id="score">0</b><span>ОЧКИ</span></div>
+    <div class="panel stat"><b id="lines">0</b><span>ЛИНИИ</span></div>
+    <div class="panel stat"><b id="level">1</b><span>УРОВЕНЬ</span></div>
+    <div class="panel stat"><b id="best">0</b><span>РЕКОРД</span></div>
+  </div>
+  <div id="board-row">
+    <div id="stage">
+      <canvas id="cv"></canvas>
+      <div id="ticker">СТЕК ГОТОВ</div>
+      <div id="screens">
+        <div class="card" id="cardMenu">
+          <h1><small>СТЕК</small>Тетрис</h1>
+          <p class="lede">Классика без лишнего: собирай фигуры в ровные линии, разгоняйся с каждым уровнем и не дай стакану переполниться.</p>
+          <div class="keys">
+            <span class="key"><em>← →</em> двигать</span>
+            <span class="key"><em>↑ / X</em> повернуть</span>
+            <span class="key"><em>↓</em> ускорить</span>
+            <span class="key"><em>Space</em> сброс</span>
+            <span class="key"><em>P</em> пауза</span>
+          </div>
+          <button class="go" id="btnStart">ИГРАТЬ</button>
+        </div>
+        <div class="card hidden" id="cardOver">
+          <h1><small id="overTag">ИГРА ОКОНЧЕНА</small><span id="overTitle">Стакан переполнен</span></h1>
+          <div class="report" id="report"></div>
+          <button class="go" id="btnAgain">ЕЩЁ РАЗ</button>
+        </div>
+        <div class="card hidden" id="cardPause">
+          <h1><small>ПАУЗА</small>Продолжим?</h1>
+          <button class="go" id="btnResume">ПРОДОЛЖИТЬ</button>
+        </div>
+      </div>
+      <div id="pauseHint" class="hidden">P – пауза</div>
+      <button id="sound">ЗВУК: ВКЛ</button>
+    </div>
+    <div id="side">
+      <div class="panel side-panel">
+        <div class="lab">ДАЛЕЕ</div>
+        <canvas id="nextCv" width="88" height="88"></canvas>
+      </div>
+    </div>
+  </div>
+  <div id="touch">
+    <button id="tLeft" title="Влево">←</button>
+    <button id="tRight" title="Вправо">→</button>
+    <button id="tRot" class="accent" title="Повернуть">⟳</button>
+    <button id="tDown" title="Ускорить">↓</button>
+    <button id="tDrop" title="Сброс">⤓</button>
+  </div>
+</div>
+
+<script>
+const COLS=10, ROWS=20, CELL_BASE=28;
+const el=id=>document.getElementById(id);
+const cv=el('cv'), ctx=cv.getContext('2d');
+const nCv=el('nextCv'), nCtx=nCv.getContext('2d');
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const ri=(a,b)=>Math.floor(rnd(a,b+1));
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+
+/* ---------------- Фигуры ---------------- */
+const SHAPES={
+  I:{color:"#7DD3FC",cells:[[0,1],[1,1],[2,1],[3,1]],size:4},
+  O:{color:"#FFD400",cells:[[1,0],[2,0],[1,1],[2,1]],size:4},
+  T:{color:"#B14EFF",cells:[[1,0],[0,1],[1,1],[2,1]],size:3},
+  S:{color:"#39FF6A",cells:[[1,0],[2,0],[0,1],[1,1]],size:3},
+  Z:{color:"#FF3B5C",cells:[[0,0],[1,0],[1,1],[2,1]],size:3},
+  J:{color:"#3AA0FF",cells:[[0,0],[0,1],[1,1],[2,1]],size:3},
+  L:{color:"#FFA23A",cells:[[2,0],[0,1],[1,1],[2,1]],size:3},
+};
+const NAMES=Object.keys(SHAPES);
+
+function bagShuffle(){
+  const a=NAMES.slice();
+  for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+/* ---------------- Звук ---------------- */
+const Snd={
+  on:true,ac:null,master:null,
+  boot(){
+    if(this.ac)return;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    this.ac=new AC();
+    this.master=this.ac.createGain();
+    this.master.gain.value=this.on?.85:0;
+    this.master.connect(this.ac.destination);
+  },
+  tone(f0,f1,dur,type="triangle",vol=.2){
+    if(!this.ac||!this.on)return;
+    const t=this.ac.currentTime,o=this.ac.createOscillator(),g=this.ac.createGain();
+    o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(this.master);o.start(t);o.stop(t+dur+.05);
+  },
+  move(){this.tone(220,260,.05,"square",.06)},
+  rotate(){this.tone(340,420,.07,"triangle",.09)},
+  drop(){this.tone(140,60,.09,"square",.12)},
+  lock(){this.tone(180,90,.08,"sine",.1)},
+  clear(n){[520,660,840,1040][Math.min(3,n-1)] && this.tone([520,660,840,1040][Math.min(3,n-1)],1200,.22,"triangle",.18)},
+  levelup(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.tone(f,f*1.4,.18,"triangle",.16),i*90))},
+  over(){this.tone(300,40,.6,"sawtooth",.2)},
+  toggle(){
+    this.on=!this.on;
+    if(this.master)this.master.gain.value=this.on?.85:0;
+    el('sound').textContent="ЗВУК: "+(this.on?"ВКЛ":"ВЫКЛ");
+  }
+};
+
+/* ---------------- Состояние ---------------- */
+const S={
+  mode:"menu", board:[], bag:[], next:null, cur:null,
+  x:0,y:0,rot:0, score:0, lines:0, level:1, best:0,
+  dropT:0, dropInterval:800, softDrop:false, lockT:0, locking:false,
+  clearing:[], clearT:0, shake:0, cell:CELL_BASE,
+};
+
+function newBoard(){ return Array.from({length:ROWS},()=>Array(COLS).fill(null)); }
+
+function rotateCells(cells,size,rot){
+  let out=cells;
+  for(let r=0;r<rot;r++){
+    out=out.map(([x,y])=>[size-1-y,x]);
+  }
+  return out;
+}
+
+function spawnPiece(){
+  if(!S.bag.length)S.bag=bagShuffle();
+  const name=S.next || S.bag.shift();
+  if(!S.bag.length)S.bag=bagShuffle();
+  S.next=S.bag.shift();
+  const def=SHAPES[name];
+  S.cur={name,def,rot:0};
+  S.x=Math.floor((COLS-def.size)/2);
+  S.y=name==="I"?-1:-1;
+  S.dropT=0;S.locking=false;S.lockT=0;
+  drawNext();
+  if(collides(S.cur,S.x,S.y,0)){ gameOver(); }
+}
+
+function cellsFor(cur,rot){
+  return rotateCells(cur.def.cells,cur.def.size,((rot%4)+4)%4);
+}
+
+function collides(cur,px,py,rot){
+  const cells=cellsFor(cur,rot);
+  for(const [cx,cy] of cells){
+    const bx=px+cx, by=py+cy;
+    if(bx<0||bx>=COLS||by>=ROWS)return true;
+    if(by>=0 && S.board[by][bx])return true;
+  }
+  return false;
+}
+
+function lockPiece(){
+  const cells=cellsFor(S.cur,S.cur.rot);
+  let topOut=false;
+  for(const [cx,cy] of cells){
+    const bx=S.x+cx, by=S.y+cy;
+    if(by<0){topOut=true;continue}
+    S.board[by][bx]={color:S.cur.def.color};
+  }
+  Snd.lock();
+  if(topOut){ gameOver(); return; }
+  findClears();
+}
+
+function findClears(){
+  const full=[];
+  for(let r=0;r<ROWS;r++) if(S.board[r].every(c=>c)) full.push(r);
+  if(full.length){
+    S.clearing=full; S.clearT=0.28; S.mode="clear";
+    Snd.clear(full.length);
+  }else{
+    spawnPiece();
+  }
+}
+
+function resolveClears(){
+  const full=S.clearing;
+  const kept=S.board.filter((_,r)=>!full.includes(r));
+  const board=Array.from({length:full.length},()=>Array(COLS).fill(null)).concat(kept);
+  S.board=board;
+
+  const n=full.length;
+  const points=[0,100,300,500,800][n]*S.level;
+  S.score+=points;
+  S.lines+=n;
+  const newLevel=1+Math.floor(S.lines/10);
+  if(newLevel>S.level){ S.level=newLevel; Snd.levelup(); ticker("УРОВЕНЬ "+S.level+" · РАЗГОН"); }
+  S.dropInterval=Math.max(90, 800 - (S.level-1)*62);
+  if(S.score>S.best){ S.best=S.score; saveBest(); }
+  syncHud();
+  ticker(n>=4?"ТЕТРИС! +"+points:n>1?"КОМБО ×"+n+" +"+points:"ЛИНИЯ +"+points);
+
+  S.clearing=[]; S.mode="run";
+  spawnPiece();
+}
+
+/* ---------------- Управление ---------------- */
+function tryMove(dx){
+  if(S.mode!=="run")return;
+  if(!collides(S.cur,S.x+dx,S.y,S.cur.rot)){ S.x+=dx; Snd.move(); S.lockT=0; }
+}
+function tryRotate(){
+  if(S.mode!=="run")return;
+  const nr=(S.cur.rot+1)%4;
+  const kicks=[0,-1,1,-2,2];
+  for(const k of kicks){
+    if(!collides(S.cur,S.x+k,S.y,nr)){ S.cur.rot=nr; S.x+=k; Snd.rotate(); S.lockT=0; return; }
+  }
+}
+function softDrop(dt){
+  S.dropT+=dt*(S.softDrop?7:1);
+  if(S.dropT>=S.dropInterval/1000){
+    S.dropT=0;
+    if(!collides(S.cur,S.x,S.y+1,S.cur.rot)){ S.y++; }
+    else beginLock();
+  }
+}
+function beginLock(){
+  if(S.locking)return;
+  S.locking=true; S.lockT=0;
+}
+function hardDrop(){
+  if(S.mode!=="run")return;
+  let n=0;
+  while(!collides(S.cur,S.x,S.y+1,S.cur.rot)){ S.y++; n++; }
+  S.score+=n*2;
+  Snd.drop();
+  lockPiece();
+  syncHud();
+}
+
+/* ---------------- Игровой цикл ---------------- */
+let lastTs=0;
+function frame(ts){
+  requestAnimationFrame(frame);
+  const dt=lastTs?Math.min(.05,(ts-lastTs)/1000):0;
+  lastTs=ts;
+
+  if(S.mode==="run"){
+    if(S.locking){
+      S.lockT+=dt;
+      if(!collides(S.cur,S.x,S.y+1,S.cur.rot)){ S.locking=false; }
+      else if(S.lockT>0.5){ lockPiece(); }
+    }else{
+      softDrop(dt);
+    }
+  }else if(S.mode==="clear"){
+    S.clearT-=dt;
+    if(S.clearT<=0) resolveClears();
+  }
+  if(S.shake>0)S.shake=Math.max(0,S.shake-dt*3);
+
+  draw();
+}
+
+/* ---------------- Отрисовка ---------------- */
+function fitCanvas(){
+  const wrap=el('wrap'), stage=el('stage'), side=el('side'), topline=el('topline'), touch=el('touch');
+  const mobile = window.matchMedia('(max-width:640px)').matches;
+  const wrapRect = wrap.getBoundingClientRect();
+  const wrapStyle = getComputedStyle(wrap);
+  const gap = parseFloat(wrapStyle.rowGap || wrapStyle.gap) || 8;
+  const toplineH = topline.getBoundingClientRect().height;
+  let maxW, maxH;
+  if(mobile){
+    maxW = wrapRect.width - 2;
+    const sideH = side.getBoundingClientRect().height;
+    const touchH = touch.offsetParent ? touch.getBoundingClientRect().height : 0;
+    const rows = touchH ? 3 : 2; // topline+board(+touch)
+    maxH = window.innerHeight - toplineH - sideH - touchH - gap*rows - 6;
+  }else{
+    const sideW = side.getBoundingClientRect().width || 104;
+    maxW = wrapRect.width - sideW - 10;
+    maxH = window.innerHeight - toplineH - gap*2 - 12;
+  }
+  const cell = Math.max(12, Math.floor(Math.min(maxW/COLS, maxH/ROWS)));
+  S.cell=cell;
+  cv.width=cell*COLS; cv.height=cell*ROWS;
+  cv.style.width=cv.width+'px'; cv.style.height=cv.height+'px';
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawCell(gx,gy,color,alpha=1){
+  const c=S.cell,g=2;
+  const x=gx*c+g,y=gy*c+g,w=c-g*2,h=c-g*2;
+  ctx.globalAlpha=alpha;
+  ctx.fillStyle="rgba(0,0,0,.35)";
+  roundRect(x,y+2,w,h,4);ctx.fill();
+  ctx.fillStyle=color;
+  roundRect(x,y,w,h,4);ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,.28)";
+  roundRect(x+2,y+2,w-4,Math.max(2,h*.3),3);ctx.fill();
+  ctx.globalAlpha=1;
+}
+
+function draw(){
+  const sh=S.shake>0?rnd(-4,4)*S.shake:0;
+  ctx.save();
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.translate(sh,0);
+
+  // сетка
+  ctx.strokeStyle="rgba(140,160,255,.06)";ctx.lineWidth=1;
+  for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(c*S.cell,0);ctx.lineTo(c*S.cell,ROWS*S.cell);ctx.stroke();}
+  for(let r=0;r<=ROWS;r++){ctx.beginPath();ctx.moveTo(0,r*S.cell);ctx.lineTo(COLS*S.cell,r*S.cell);ctx.stroke();}
+
+  // стакан
+  for(let r=0;r<ROWS;r++){
+    const flashing=S.mode==="clear" && S.clearing.includes(r);
+    for(let c=0;c<COLS;c++){
+      const cell=S.board[r][c];
+      if(!cell)continue;
+      if(flashing){
+        const k=1-Math.max(0,S.clearT/0.28);
+        drawCell(c,r,Math.floor(k*8)%2?"#FFFFFF":cell.color);
+      }else{
+        drawCell(c,r,cell.color);
+      }
+    }
+  }
+
+  // призрак (место посадки)
+  if(S.mode==="run"){
+    let gy=S.y;
+    while(!collides(S.cur,S.x,gy+1,S.cur.rot))gy++;
+    ctx.globalAlpha=.18;
+    for(const [cx,cy] of cellsFor(S.cur,S.cur.rot)){
+      const by=gy+cy; if(by<0)continue;
+      drawCell(S.x+cx,by,S.cur.def.color);
+    }
+    ctx.globalAlpha=1;
+
+    // текущая фигура
+    for(const [cx,cy] of cellsFor(S.cur,S.cur.rot)){
+      const by=S.y+cy; if(by<0)continue;
+      drawCell(S.x+cx,by,S.cur.def.color);
+    }
+  }
+  ctx.restore();
+}
+
+function drawNext(){
+  nCtx.clearRect(0,0,nCv.width,nCv.height);
+  if(!S.next)return;
+  const def=SHAPES[S.next];
+  const c=18, ox=(nCv.width-def.size*c)/2, oy=(nCv.height-def.size*c)/2;
+  for(const [cx,cy] of def.cells){
+    const x=ox+cx*c+2,y=oy+cy*c+2,w=c-4,h=c-4;
+    nCtx.fillStyle="rgba(0,0,0,.3)";nCtx.fillRect(x,y+2,w,h);
+    nCtx.fillStyle=def.color;nCtx.fillRect(x,y,w,h);
+  }
+}
+
+/* ---------------- HUD ---------------- */
+function syncHud(){
+  el('score').textContent=S.score;
+  el('lines').textContent=S.lines;
+  el('level').textContent=S.level;
+  el('best').textContent=S.best;
+}
+let tickerT=null;
+function ticker(text){
+  const t=el('ticker');
+  t.textContent=text;
+  t.classList.add('show');
+  clearTimeout(tickerT);
+  tickerT=setTimeout(()=>{ t.classList.remove('show'); },1600);
+}
+
+/* ---------------- Рекорд ---------------- */
+async function loadBest(){
+  try{
+    if(window.storage){
+      const r=await window.storage.get('tetris:best', false);
+      if(r && r.value) S.best=parseInt(r.value,10)||0;
+    }
+  }catch(e){}
+  syncHud();
+}
+async function saveBest(){
+  try{ if(window.storage) await window.storage.set('tetris:best', String(S.best), false); }catch(e){}
+}
+
+/* ---------------- Старт / рестарт ---------------- */
+function startRun(){
+  Snd.boot();
+  S.board=newBoard();
+  S.bag=bagShuffle(); S.next=null;
+  S.score=0;S.lines=0;S.level=1;S.dropInterval=800;
+  S.mode="run";S.shake=0;
+  fitCanvas();
+  spawnPiece();
+  syncHud();
+  ticker("СТЕК · УРОВЕНЬ 1");
+  el('screens').classList.add('hidden');
+  el('pauseHint').classList.remove('hidden');
+}
+
+function gameOver(){
+  S.mode="over"; S.shake=1;
+  Snd.over();
+  if(S.score>S.best){ S.best=S.score; saveBest(); }
+  syncHud();
+  el('overTitle').textContent = S.lines>=10 ? "Стакан переполнен" : "Немного не хватило разгона";
+  el('report').innerHTML=`
+    <div><span>Очки</span><b class="${S.score>=S.best?'good':''}">${S.score}</b></div>
+    <div><span>Линий очищено</span><b>${S.lines}</b></div>
+    <div><span>Уровень</span><b>${S.level}</b></div>
+    <div><span>Рекорд</span><b>${S.best}</b></div>`;
+  el('screens').classList.remove('hidden');
+  el('cardOver').classList.remove('hidden');
+  el('cardMenu').classList.add('hidden');
+  el('pauseHint').classList.add('hidden');
+}
+
+function togglePause(){
+  if(S.mode==="run"){
+    S.mode="pause";
+    el('screens').classList.remove('hidden');
+    el('cardPause').classList.remove('hidden');
+  }else if(S.mode==="pause"){
+    S.mode="run";
+    el('screens').classList.add('hidden');
+    el('cardPause').classList.add('hidden');
+  }
+}
+
+/* ---------------- Ввод ---------------- */
+window.addEventListener('keydown', e=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key))e.preventDefault();
+  if(e.key==='p'||e.key==='P'||e.key==='Escape'){ if(S.mode==="run"||S.mode==="pause") togglePause(); return; }
+  if(S.mode!=="run")return;
+  if(e.key==='ArrowLeft')tryMove(-1);
+  else if(e.key==='ArrowRight')tryMove(1);
+  else if(e.key==='ArrowUp'||e.key==='x'||e.key==='X')tryRotate();
+  else if(e.key==='ArrowDown')S.softDrop=true;
+  else if(e.key===' ')hardDrop();
+});
+window.addEventListener('keyup', e=>{ if(e.key==='ArrowDown')S.softDrop=false; });
+
+el('btnStart').onclick=startRun;
+el('btnAgain').onclick=startRun;
+el('btnResume').onclick=togglePause;
+el('sound').onclick=()=>Snd.toggle();
+
+function buzz(ms){ if(navigator.vibrate) navigator.vibrate(ms); }
+
+// удержание кнопки = повтор действия (как автосдвиг при зажатой клавише)
+function holdRepeat(btn, action, delay=220, interval=55){
+  let timer=null, repeatT=null;
+  const fire=(first)=>{ action(); buzz(first?10:5); };
+  const start=(e)=>{
+    e.preventDefault();
+    fire(true);
+    timer=setTimeout(()=>{ repeatT=setInterval(()=>fire(false), interval); }, delay);
+  };
+  const stop=()=>{ clearTimeout(timer); clearInterval(repeatT); };
+  btn.addEventListener('pointerdown', start);
+  btn.addEventListener('pointerup', stop);
+  btn.addEventListener('pointerleave', stop);
+  btn.addEventListener('pointercancel', stop);
+}
+holdRepeat(el('tLeft'), ()=>tryMove(-1));
+holdRepeat(el('tRight'), ()=>tryMove(1));
+el('tRot').addEventListener('pointerdown', e=>{ e.preventDefault(); tryRotate(); buzz(10); });
+el('tDrop').addEventListener('pointerdown', e=>{ e.preventDefault(); hardDrop(); buzz(16); });
+el('tDown').addEventListener('pointerdown', e=>{ e.preventDefault(); S.softDrop=true; buzz(8); });
+el('tDown').addEventListener('pointerup', ()=>S.softDrop=false);
+el('tDown').addEventListener('pointerleave', ()=>S.softDrop=false);
+el('tDown').addEventListener('pointercancel', ()=>S.softDrop=false);
+
+// свайпы по игровому полю
+let sx=0,sy=0,swiped=false;
+cv.addEventListener('touchstart', e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; swiped=false; }, {passive:true});
+cv.addEventListener('touchmove', e=>{
+  const t=e.touches[0]; const dx=t.clientX-sx, dy=t.clientY-sy;
+  if(!swiped && Math.abs(dx)>S.cell*0.8){ tryMove(dx>0?1:-1); buzz(5); sx=t.clientX; swiped=true; setTimeout(()=>swiped=false,90); }
+  if(!swiped && dy>S.cell*1.2){ S.softDrop=true; }
+}, {passive:true});
+cv.addEventListener('touchend', e=>{
+  S.softDrop=false;
+  const dt=e.changedTouches[0], dx=dt.clientX-sx, dy=dt.clientY-sy;
+  if(Math.abs(dx)<10 && Math.abs(dy)<10){ tryRotate(); buzz(10); }
+  else if(dy>S.cell*3){ hardDrop(); buzz(16); }
+}, {passive:true});
+
+window.addEventListener('resize', fitCanvas);
+window.addEventListener('orientationchange', ()=>setTimeout(fitCanvas, 200));
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden && S.mode==="run") togglePause(); });
+
+S.board=newBoard();
+fitCanvas();
+loadBest();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

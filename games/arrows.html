@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ВЗЛЁТ · Стрелки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#050710;
+  --panel:rgba(10,14,24,.82);
+  --line:rgba(120,200,255,.18);
+  --ink:#EAF2FF;
+  --muted:#7C8AAE;
+  --cyan:#4CD6FF;
+  --gold:#FFD65C;
+  --good:#39FF6A;
+  --bad:#FF3B5C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(900px 540px at 50% -10%, rgba(76,214,255,.14), transparent 62%),
+    radial-gradient(700px 420px at 90% 100%, rgba(255,214,92,.08), transparent 60%),
+    var(--bg0);
+  color:var(--ink);
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  touch-action:none;
+}
+#wrap{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  width:min(94vw, calc((100vh - 40px) * 0.72));
+  max-height:100vh;padding:10px 0;
+}
+#topline{display:flex;gap:8px;width:100%}
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:8px 10px;backdrop-filter:blur(6px);
+}
+.stat{flex:1;text-align:center;min-width:0}
+.stat b{display:block;font-family:"Unbounded",sans-serif;font-size:16px;letter-spacing:-.01em;color:var(--cyan)}
+.stat span{font-size:8.5px;letter-spacing:.13em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+#stage{
+  position:relative;width:100%;aspect-ratio:560/700;border-radius:16px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--line), 0 26px 80px rgba(0,0,0,.7);
+}
+canvas{display:block;width:100%;height:100%;background:#060812;touch-action:none}
+
+#screens{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;z-index:9}
+.card{
+  width:100%;max-width:360px;background:rgba(8,10,18,.92);border:1px solid var(--line);
+  border-radius:16px;padding:24px 20px;text-align:center;backdrop-filter:blur(10px);
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.card.hidden{display:none}
+h1{font-family:"Unbounded",sans-serif;font-weight:800;font-size:26px;letter-spacing:-.02em}
+h1 small{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.3em;color:var(--cyan);margin-bottom:10px}
+.lede{font-size:12.5px;line-height:1.7;color:var(--muted);margin:14px 0 18px}
+.keys{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.key{border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:10px;letter-spacing:.06em;color:#C7CCE6}
+.key em{font-style:normal;color:var(--cyan)}
+button.go{
+  font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;letter-spacing:.16em;
+  color:#050710;background:var(--cyan);border:0;border-radius:8px;
+  padding:13px 22px;cursor:pointer;width:100%;
+  box-shadow:0 0 24px rgba(76,214,255,.3);
+}
+#sound,#restart,#pauseBtn{
+  position:absolute;z-index:10;padding:7px 10px;font-size:10px;
+  background:rgba(8,10,18,.8);color:var(--cyan);border:1px solid var(--line);border-radius:8px;
+  font-family:"JetBrains Mono",monospace;cursor:pointer;
+}
+#sound{right:10px;bottom:10px}
+#pauseBtn{left:10px;bottom:10px}
+#restart{left:10px;top:10px}
+.hidden{display:none !important}
+
+#toast{
+  position:absolute;left:50%;top:14%;transform:translate(-50%,-8px);z-index:11;
+  font-family:"Unbounded",sans-serif;font-weight:700;font-size:15px;text-align:center;
+  color:var(--gold);text-shadow:0 2px 14px rgba(0,0,0,.8);
+  opacity:0;pointer-events:none;transition:opacity .18s, transform .18s;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast small{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:10px;letter-spacing:.2em;color:var(--muted);margin-top:2px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::after{animation-duration:.001ms!important;animation-delay:0ms!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="topline">
+    <div class="panel stat"><b id="hLevel">1</b><span>УРОВЕНЬ</span></div>
+    <div class="panel stat"><b id="hProgress">0/0</b><span>В УРОВНЕ</span></div>
+    <div class="panel stat"><b id="hFlying">0</b><span>В ПОЛЁТЕ</span></div>
+    <div class="panel stat"><b id="hBest">0</b><span>РЕКОРД</span></div>
+  </div>
+  <div id="stage">
+    <canvas id="cv" width="560" height="700"></canvas>
+    <div id="toast"><span id="toastT"></span><small id="toastK"></small></div>
+    <div id="screens">
+      <div class="card" id="cardMenu">
+        <h1><small>ВЗЛЁТ</small>Стрелки</h1>
+        <p class="lede">На поле — стрелки, готовые к вылету. Запускай их по одной, но не давай траекториям пересечься: столкновение не разрешено, зато можно поднимать следующую стрелку, не дожидаясь, пока улетит предыдущая. Уровней бесконечно много.</p>
+        <div class="keys">
+          <span class="key"><em>тап / клик</em> запустить стрелку</span>
+          <span class="key"><em>P</em> пауза</span>
+        </div>
+        <button class="go" id="btnStart">В ПОЛЁТ</button>
+      </div>
+      <div class="card hidden" id="cardPause">
+        <h1><small>ПАУЗА</small>Продолжим?</h1>
+        <button class="go" id="btnResume">ПРОДОЛЖИТЬ</button>
+      </div>
+    </div>
+    <button id="restart" class="hidden" title="Начать заново">⟲ ЗАНОВО</button>
+    <button id="pauseBtn" class="hidden" title="Пауза">II ПАУЗА</button>
+    <button id="sound">ЗВУК: ВКЛ</button>
+  </div>
+</div>
+
+<script>
+const el=id=>document.getElementById(id);
+const cv=el('cv'), ctx=cv.getContext('2d');
+const W=560, H=700;
+const TAU=Math.PI*2;
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- звук ---------------- */
+const Snd={
+  on:true,ac:null,master:null,
+  boot(){
+    if(this.ac)return;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    this.ac=new AC();
+    this.master=this.ac.createGain();
+    this.master.gain.value=this.on?1:0;
+    this.master.connect(this.ac.destination);
+  },
+  setOn(v){ this.on=v; if(this.master) this.master.gain.setTargetAtTime(v?1:0, this.ac.currentTime, .05); },
+  tone(f0,f1,dur,type="triangle",vol=.2){
+    if(!this.ac||!this.on)return;
+    const t=this.ac.currentTime,o=this.ac.createOscillator(),g=this.ac.createGain();
+    o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(this.master);o.start(t);o.stop(t+dur+.05);
+  },
+  burst(dur,freq,vol=.22){
+    if(!this.ac||!this.on)return;
+    const t=this.ac.currentTime,len=Math.ceil(this.ac.sampleRate*dur);
+    const b=this.ac.createBuffer(1,len,this.ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+    const s=this.ac.createBufferSource();s.buffer=b;
+    const f=this.ac.createBiquadFilter();f.type="bandpass";f.frequency.value=freq;f.Q.value=.8;
+    const g=this.ac.createGain();g.gain.value=vol;
+    s.connect(f).connect(g).connect(this.master);s.start(t);
+  },
+  launch(){ this.tone(360,1200,.22,"triangle",.16); this.burst(.08,2600,.1); },
+  blocked(){ this.tone(160,110,.12,"square",.12); },
+  clear(){ this.tone(520,1040,.14,"sine",.14); setTimeout(()=>this.tone(780,1560,.18,"sine",.14),90); },
+};
+
+/* ---------------- хранилище рекорда ---------------- */
+const Store={
+  async get(key){
+    try{
+      if(window.storage){ const r=await window.storage.get(key); return r?r.value:null; }
+      return localStorage.getItem(key);
+    }catch(e){ return null; }
+  },
+  async set(key,value){
+    try{
+      if(window.storage) await window.storage.set(key,value);
+      else localStorage.setItem(key,value);
+    }catch(e){}
+  }
+};
+let best=0;
+async function loadBest(){ const v=await Store.get('arrows:best'); best=v?Number(v):0; el('hBest').textContent=best; }
+async function saveBest(){ await Store.set('arrows:best', String(best)); }
+
+/* ---------------- геометрия ---------------- */
+const rand=(a,b)=>a+Math.random()*(b-a);
+function exitDist(x,y,angle,w,h){
+  const dx=Math.cos(angle), dy=Math.sin(angle);
+  let t=Infinity;
+  if(dx>1e-6) t=Math.min(t,(w-x)/dx);
+  else if(dx<-1e-6) t=Math.min(t,(0-x)/dx);
+  if(dy>1e-6) t=Math.min(t,(h-y)/dy);
+  else if(dy<-1e-6) t=Math.min(t,(0-y)/dy);
+  return t;
+}
+function segPointDist(ax,ay,bx,by,px,py){
+  const vx=bx-ax, vy=by-ay;
+  const wx=px-ax, wy=py-ay;
+  const len2=vx*vx+vy*vy || 1;
+  const t=Math.max(0,Math.min(1,(wx*vx+wy*vy)/len2));
+  const cx=ax+t*vx, cy=ay+t*vy;
+  return Math.hypot(px-cx,py-cy);
+}
+function pathBlockedAmong(arrow, list, gap){
+  const ex=exitDist(arrow.x,arrow.y,arrow.angle,W,H);
+  const exX=arrow.x+Math.cos(arrow.angle)*ex, exY=arrow.y+Math.sin(arrow.angle)*ex;
+  for(const o of list){
+    if(o===arrow) continue;
+    const d=segPointDist(arrow.x,arrow.y,exX,exY,o.x,o.y);
+    if(d < arrow.r+o.r+gap) return true;
+  }
+  return false;
+}
+const GAP=10, FLY_GAP=6, SPEED=340;
+
+function isSolvable(arrows, gap){
+  let remaining=arrows.map(a=>({x:a.x,y:a.y,angle:a.angle,r:a.r}));
+  while(remaining.length){
+    let found=-1;
+    for(let i=0;i<remaining.length;i++){
+      if(!pathBlockedAmong(remaining[i], remaining, gap)){ found=i; break; }
+    }
+    if(found<0) return false;
+    remaining.splice(found,1);
+  }
+  return true;
+}
+
+// reserved corner rectangles (logical units) where HUD buttons sit, so arrows don't spawn under them
+const UI_ZONES=[
+  {x0:0,y0:0,x1:170,y1:55},       // top-left: restart
+  {x0:0,y0:H-65,x1:150,y1:H},     // bottom-left: pause
+  {x0:W-150,y0:H-65,x1:W,y1:H},   // bottom-right: sound
+];
+function inUiZone(x,y,r){
+  for(const z of UI_ZONES){
+    if(x+r>z.x0 && x-r<z.x1 && y+r>z.y0 && y-r<z.y1) return true;
+  }
+  return false;
+}
+function placeArrows(n, r){
+  const pad=r+14;
+  const minSep=r*2+16;
+  const pts=[];
+  for(let i=0;i<n;i++){
+    let placed=false;
+    for(let tries=0;tries<400;tries++){
+      const x=rand(pad,W-pad), y=rand(pad,H-pad);
+      if(inUiZone(x,y,r)) continue;
+      let ok=true;
+      for(const p of pts) if(Math.hypot(p.x-x,p.y-y)<minSep){ ok=false; break; }
+      if(ok){ pts.push({x,y}); placed=true; break; }
+    }
+    if(!placed) return null;
+  }
+  return pts.map(p=>({x:p.x,y:p.y,angle:Math.random()*TAU,r,flashT:0,id:Math.random()}));
+}
+
+function countForLevel(level){ return Math.min(6+(level-1)*2, 26); }
+function radiusForCount(n){
+  const area=W*H;
+  const r=Math.sqrt(area*0.052/(Math.PI*n));
+  return Math.max(15, Math.min(32, r));
+}
+
+function generateLevel(level){
+  let n=countForLevel(level);
+  while(n>=3){
+    const r=radiusForCount(n);
+    for(let attempt=0; attempt<50; attempt++){
+      const arrows=placeArrows(n,r);
+      if(arrows && isSolvable(arrows, GAP)) return arrows;
+    }
+    n--;
+  }
+  // absolute fallback: a single arrow, always solvable
+  const r=radiusForCount(3);
+  return [{x:W/2,y:H/2,angle:Math.random()*TAU,r,flashT:0,id:Math.random()}];
+}
+
+/* ---------------- состояние ---------------- */
+const S={
+  mode:"menu", // menu | play | clear | paused
+  level:1,
+  arrows:[],
+  flying:[],
+  particles:[],
+  levelTotal:0,
+  cleared:0,
+  clearT:0,
+  prevMode:"play",
+};
+
+function newRun(){
+  S.level=1; S.cleared=0;
+  S.arrows=generateLevel(S.level);
+  S.levelTotal=S.arrows.length;
+  S.flying=[]; S.particles=[];
+  syncHud();
+}
+
+function nextLevel(){
+  S.level++;
+  S.arrows=generateLevel(S.level);
+  S.levelTotal=S.arrows.length;
+  S.mode="play";
+  syncHud();
+}
+
+function syncHud(){
+  el('hLevel').textContent=S.level;
+  el('hProgress').textContent=`${S.levelTotal-S.arrows.length}/${S.levelTotal}`;
+  el('hFlying').textContent=S.flying.length;
+  el('hBest').textContent=best;
+}
+
+/* ---------------- toast (очередь) ---------------- */
+const TOAST_MS=1100, TOAST_MAX=3;
+let toastQueue=[], toastBusy=false;
+function toast(t,k){
+  toastQueue.push({t,k});
+  if(toastQueue.length>TOAST_MAX) toastQueue.splice(1, toastQueue.length-TOAST_MAX);
+  if(!toastBusy) playNextToast();
+}
+function playNextToast(){
+  const next=toastQueue.shift();
+  if(!next){ toastBusy=false; return; }
+  toastBusy=true;
+  el('toastT').textContent=next.t;
+  el('toastK').textContent=next.k||'';
+  el('toast').classList.remove('show'); void el('toast').offsetWidth; el('toast').classList.add('show');
+  setTimeout(()=>{ el('toast').classList.remove('show'); setTimeout(playNextToast, 160); }, TOAST_MS);
+}
+
+/* ---------------- запуск стрелки ---------------- */
+function wouldCollideWithFlying(cand, now){
+  const dx=Math.cos(cand.angle)*SPEED, dy=Math.sin(cand.angle)*SPEED;
+  const tEndA=exitDist(cand.x,cand.y,cand.angle,W,H)/SPEED;
+  for(const f of S.flying){
+    const remainingF=f.tEnd-(now-f.t0);
+    if(remainingF<=0) continue;
+    const rx=cand.x-f.x, ry=cand.y-f.y;
+    const rvx=dx-f.vx, rvy=dy-f.vy;
+    const tMax=Math.min(tEndA, remainingF);
+    const rv2=rvx*rvx+rvy*rvy;
+    let t = rv2<1e-6 ? 0 : -(rx*rvx+ry*rvy)/rv2;
+    t=Math.max(0, Math.min(tMax, t));
+    const cx=rx+rvx*t, cy=ry+rvy*t;
+    if(Math.hypot(cx,cy) < cand.r+f.r+FLY_GAP) return true;
+  }
+  return false;
+}
+
+function tryLaunch(arrow){
+  const now=performance.now()/1000;
+  if(pathBlockedAmong(arrow, S.arrows, GAP) || wouldCollideWithFlying(arrow, now)){
+    arrow.flashT=0.35;
+    Snd.blocked();
+    return;
+  }
+  const idx=S.arrows.indexOf(arrow);
+  if(idx>=0) S.arrows.splice(idx,1);
+  const vx=Math.cos(arrow.angle)*SPEED, vy=Math.sin(arrow.angle)*SPEED;
+  const dur=exitDist(arrow.x,arrow.y,arrow.angle,W,H)/SPEED;
+  S.flying.push({x:arrow.x,y:arrow.y,angle:arrow.angle,r:arrow.r,vx,vy,t0:now,tEnd:dur,trail:[]});
+  S.cleared++;
+  Snd.launch();
+  if(S.cleared>best){ best=S.cleared; saveBest(); }
+  syncHud();
+}
+
+/* ---------------- обновление ---------------- */
+function spawnBurst(x,y,angle){
+  for(let i=0;i<7;i++){
+    const a=angle+rand(-0.9,0.9);
+    const sp=rand(60,180);
+    S.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:0.4,age:0});
+  }
+}
+
+function update(dt){
+  if(S.mode!=="play" && S.mode!=="clear") return;
+  const now=performance.now()/1000;
+
+  for(let i=S.flying.length-1;i>=0;i--){
+    const f=S.flying[i];
+    const elapsed=now-f.t0;
+    f.cx=f.x+f.vx*elapsed; f.cy=f.y+f.vy*elapsed;
+    f.trail.push({x:f.cx,y:f.cy});
+    if(f.trail.length>7) f.trail.shift();
+    if(elapsed>=f.tEnd){
+      spawnBurst(f.cx,f.cy,f.angle);
+      S.flying.splice(i,1);
+    }
+  }
+
+  for(const a of S.arrows) if(a.flashT>0) a.flashT=Math.max(0,a.flashT-dt);
+
+  for(let i=S.particles.length-1;i>=0;i--){
+    const p=S.particles[i];
+    p.age+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=0.92; p.vy*=0.92;
+    if(p.age>=p.life) S.particles.splice(i,1);
+  }
+
+  if(S.mode==="play" && S.arrows.length===0){
+    S.mode="clear"; S.clearT=0;
+    toast("УРОВЕНЬ "+S.level, "ПРОЙДЕН");
+    Snd.clear();
+  }
+  if(S.mode==="clear"){
+    S.clearT+=dt;
+    if(S.clearT>0.5 && S.flying.length===0){
+      nextLevel();
+    }
+  }
+  syncHud();
+}
+
+/* ---------------- рендер ---------------- */
+let sweepA=0;
+function drawRadar(dt){
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  const cx=W/2, cy=H/2, maxR=Math.hypot(W,H)/2;
+  ctx.strokeStyle="rgba(76,214,255,.10)";
+  ctx.lineWidth=1;
+  for(let r=maxR/5; r<=maxR; r+=maxR/5){
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,TAU); ctx.stroke();
+  }
+  ctx.strokeStyle="rgba(76,214,255,.06)";
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+
+  if(!reduceMotion){
+    sweepA += dt*0.6;
+    const grad=ctx.createConicGradient ? ctx.createConicGradient(sweepA, cx, cy) : null;
+    if(grad){
+      grad.addColorStop(0, "rgba(76,214,255,.16)");
+      grad.addColorStop(0.06, "rgba(76,214,255,0)");
+      grad.addColorStop(1, "rgba(76,214,255,0)");
+      ctx.fillStyle=grad;
+      ctx.beginPath(); ctx.arc(cx,cy,maxR,0,TAU); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawArrowShape(x,y,angle,r,color,glow){
+  ctx.save();
+  ctx.translate(x,y); ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(r,0);
+  ctx.lineTo(-r*0.65, r*0.58);
+  ctx.lineTo(-r*0.25,0);
+  ctx.lineTo(-r*0.65,-r*0.58);
+  ctx.closePath();
+  if(glow){ ctx.shadowColor=color; ctx.shadowBlur=glow; }
+  ctx.fillStyle=color;
+  ctx.fill();
+  ctx.restore();
+}
+
+function draw(dt){
+  drawRadar(dt);
+
+  for(const p of S.particles){
+    const a=1-p.age/p.life;
+    ctx.fillStyle=`rgba(255,214,92,${a*0.8})`;
+    ctx.beginPath(); ctx.arc(p.x,p.y,2.4,0,TAU); ctx.fill();
+  }
+
+  for(const f of S.flying){
+    for(let i=0;i<f.trail.length;i++){
+      const t=f.trail[i];
+      const a=(i+1)/f.trail.length*0.35;
+      ctx.fillStyle=`rgba(255,214,92,${a})`;
+      ctx.beginPath(); ctx.arc(t.x,t.y,f.r*0.4,0,TAU); ctx.fill();
+    }
+    drawArrowShape(f.cx,f.cy,f.angle,f.r,"#FFD65C",14);
+  }
+
+  for(const a of S.arrows){
+    const blocked=a.flashT>0;
+    const color=blocked? "#FF3B5C" : "#4CD6FF";
+    drawArrowShape(a.x,a.y,a.angle,a.r, color, blocked?16:8);
+  }
+}
+
+/* ---------------- цикл ---------------- */
+let last=performance.now();
+function frame(ts){
+  requestAnimationFrame(frame);
+  const dt=Math.min(0.05,(ts-last)/1000); last=ts;
+  update(dt);
+  draw(dt);
+}
+
+/* ---------------- ввод ---------------- */
+function localPos(e){
+  const rect=cv.getBoundingClientRect();
+  const cx=(e.clientX-rect.left)*(cv.width/rect.width);
+  const cy=(e.clientY-rect.top)*(cv.height/rect.height);
+  return {x:cx,y:cy};
+}
+cv.addEventListener('pointerdown', e=>{
+  if(S.mode!=="play" && S.mode!=="clear") return;
+  Snd.boot();
+  const p=localPos(e);
+  let bestA=null, bestD=Infinity;
+  for(const a of S.arrows){
+    const d=Math.hypot(p.x-a.x,p.y-a.y);
+    const tapR=Math.max(a.r*1.7, 30);
+    if(d<tapR && d<bestD){ bestA=a; bestD=d; }
+  }
+  if(bestA) tryLaunch(bestA);
+});
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='p' || e.key==='P' || e.key==='Escape'){ togglePause(); }
+});
+
+function togglePause(){
+  if(S.mode==="paused"){
+    S.mode=S.prevMode;
+    el('cardPause').classList.add('hidden');
+    el('screens').classList.add('hidden');
+  }else if(S.mode==="play" || S.mode==="clear"){
+    S.prevMode=S.mode;
+    S.mode="paused";
+    el('cardPause').classList.remove('hidden');
+    el('screens').classList.remove('hidden');
+  }
+}
+
+el('pauseBtn').addEventListener('click', togglePause);
+el('btnResume').addEventListener('click', togglePause);
+
+el('btnStart').addEventListener('click', ()=>{
+  Snd.boot();
+  newRun();
+  S.mode="play";
+  el('screens').classList.add('hidden');
+  el('restart').classList.remove('hidden');
+  el('pauseBtn').classList.remove('hidden');
+});
+
+el('restart').addEventListener('click', ()=>{
+  newRun();
+  S.mode="play";
+});
+
+el('sound').addEventListener('click', ()=>{
+  Snd.on=!Snd.on;
+  Snd.setOn(Snd.on);
+  el('sound').textContent = 'ЗВУК: ' + (Snd.on?'ВКЛ':'ВЫКЛ');
+});
+
+loadBest();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
