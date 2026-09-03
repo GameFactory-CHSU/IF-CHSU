@@ -78,7 +78,8 @@ document.addEventListener('DOMContentLoaded', function () {
       eventCards.forEach(function (card) {
         var festivalType = card.classList.contains('omut') ? 'omut' : 'ifest';
         var cardYear = '';
-        if (card.id.indexOf('2025') !== -1) cardYear = '2025';
+        if (card.id.indexOf('2026') !== -1) cardYear = '2026';
+        else if (card.id.indexOf('2025') !== -1) cardYear = '2025';
         else if (card.id.indexOf('2024') !== -1) cardYear = '2024';
 
         var festivalMatch = state.festival === 'all' || state.festival === festivalType;
@@ -118,5 +119,45 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     applyFilters();
+  }
+
+  /* ---------- Лайтбокс: открытие фото новостей и мероприятий во весь экран ---------- */
+  var lightboxTargets = document.querySelectorAll('.content-image img, .photo-item img');
+  if (lightboxTargets.length) {
+    var overlay = document.createElement('div');
+    overlay.className = 'lightbox-overlay';
+    var overlayImg = document.createElement('img');
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'lightbox-close';
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Закрыть');
+    closeBtn.textContent = '✕';
+    overlay.appendChild(overlayImg);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+
+    function openLightbox(src, alt) {
+      overlayImg.src = src;
+      overlayImg.alt = alt || '';
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    lightboxTargets.forEach(function (img) {
+      img.addEventListener('click', function () {
+        openLightbox(img.currentSrc || img.src, img.alt);
+      });
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeLightbox();
+    });
+    closeBtn.addEventListener('click', closeLightbox);
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && overlay.classList.contains('open')) closeLightbox();
+    });
   }
 });

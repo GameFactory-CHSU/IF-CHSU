@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vladboss51.github.io/GameFabric-CHSU/sitemap.xml
+Sitemap: https://gamefactory-chsu.github.io/IF-CHSU/sitemap.xml
