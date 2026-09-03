@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Пылесосный переход · Румба-9000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --asphalt:#2E3238;
+  --asphalt-dark:#212429;
+  --clean:#4C545C;
+  --paint:#E8E4D9;
+  --roomba:#1F7AE0;
+  --neon:#6FD3FF;
+  --charge:#7CE38B;
+  --alarm:#FF4D4D;
+  --ink:#0D0F13;
+  --panel:rgba(13,15,19,.78);
+  --line:rgba(111,211,255,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(120% 80% at 50% 0%, #1a1f27 0%, #0b0d11 60%, #07080b 100%);
+  color:var(--paint);
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+#stage{
+  position:relative;
+  width:min(100vw, calc(100vh * 0.6));
+  aspect-ratio:540/900;
+  max-height:100vh;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(111,211,255,.14), 0 30px 90px rgba(0,0,0,.75);
+}
+canvas{display:block;width:100%;height:100%;background:var(--asphalt-dark);touch-action:none}
+
+/* --- HUD: диагностическая панель самого пылесоса --- */
+#hud{position:absolute;inset:0;pointer-events:none;padding:14px 14px 0;display:flex;flex-direction:column;gap:8px}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:9px 11px;
+  backdrop-filter:blur(6px);
+}
+.gauge{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.16em}
+.bar{flex:1;height:12px;border:1px solid var(--line);border-radius:3px;overflow:hidden;background:rgba(0,0,0,.5);position:relative}
+.bar i{display:block;height:100%;width:100%;background:var(--charge);transition:background .25s linear}
+.bar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(0,0,0,.45) 9px 10px)}
+#pct{width:44px;text-align:right;font-weight:700;font-size:13px}
+.stats{display:flex;gap:8px}
+.stats .panel{flex:1;display:flex;justify-content:space-between;font-size:11px;letter-spacing:.1em}
+.stats b{font-weight:700;color:var(--neon)}
+#ticker{
+  font-size:11px;letter-spacing:.14em;color:var(--neon);
+  border-color:rgba(111,211,255,.2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#ticker.warn{color:var(--alarm);border-color:rgba(255,77,77,.35)}
+.low #pct{color:var(--alarm)}
+
+/* --- Экраны --- */
+#screens{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:22px}
+.card{
+  width:100%;max-width:400px;
+  background:rgba(9,11,15,.9);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:26px 22px;
+  text-align:center;
+  backdrop-filter:blur(10px);
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.card.hidden{display:none}
+h1{font-family:"Unbounded",sans-serif;font-weight:800;font-size:clamp(22px,5.6vw,30px);line-height:1.05;letter-spacing:-.02em}
+h1 small{display:block;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.3em;color:var(--neon);margin-bottom:10px}
+.lede{font-size:12.5px;line-height:1.7;color:#A9B3BD;margin:14px 0 18px}
+.keys{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.key{border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:10.5px;letter-spacing:.08em;color:#C7D2DB}
+.key em{font-style:normal;color:var(--neon)}
+button{
+  font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;letter-spacing:.16em;
+  color:var(--ink);background:var(--neon);border:0;border-radius:8px;
+  padding:13px 22px;cursor:pointer;width:100%;
+  transition:transform .12s ease, box-shadow .12s ease;
+  box-shadow:0 0 24px rgba(111,211,255,.28);
+}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(1px)}
+button.ghost{background:transparent;color:var(--neon);border:1px solid var(--line);box-shadow:none;margin-top:9px}
+button:focus-visible{outline:2px solid var(--paint);outline-offset:3px}
+.report{text-align:left;font-size:12px;line-height:2;margin:16px 0 20px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:12px 0}
+.report div{display:flex;justify-content:space-between;gap:10px}
+.report span{color:#8D98A3}
+.report b{color:var(--paint);font-weight:700}
+.report b.good{color:var(--charge)}
+#sound{
+  position:absolute;right:12px;bottom:12px;width:auto;padding:8px 11px;font-size:10px;
+  background:rgba(9,11,15,.8);color:var(--neon);border:1px solid var(--line);box-shadow:none;pointer-events:auto;
+}
+.hidden{display:none !important}
+@media (prefers-reduced-motion: reduce){button{transition:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="540" height="900"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="panel gauge">ЗАРЯД
+      <div class="bar"><i id="bar"></i></div>
+      <span id="pct">100%</span>
+    </div>
+    <div class="stats">
+      <div class="panel">ДО КОВРА <b id="dist">500 м</b></div>
+      <div class="panel">МУСОР <b id="trash">0 / 0</b></div>
+    </div>
+    <div class="panel" id="ticker">СИСТЕМА: ВЫХОД НА МАГИСТРАЛЬ</div>
+  </div>
+
+  <div id="screens">
+    <div class="card" id="cardMenu">
+      <h1><small>РУМБА-9000</small>Пылесосный переход</h1>
+      <p class="lede">Балкон был открыт. Сквозняк сделал остальное.<br>
+      На той стороне магистрали — ковёр, который никто, кроме вас, не пропылесосит. Заряда мало, машин много.</p>
+      <div class="keys">
+        <span class="key"><em>Пробел</em> прыжок</span>
+        <span class="key"><em>← →</em> наклон</span>
+        <span class="key"><em>Тап</em> прыжок · <em>Свайп</em> руль</span>
+      </div>
+      <button id="btnStart">ПОЕХАЛИ</button>
+      <button class="ghost hidden" id="btnNight">РЕЖИМ «НОЧНОЙ УБОРЩИК»</button>
+    </div>
+
+    <div class="card hidden" id="cardEnd">
+      <h1><small id="endTag">ОТЧЁТ ОБ УБОРКЕ</small><span id="endTitle">Идеальная чистота!</span></h1>
+      <div class="report" id="report"></div>
+      <button id="btnNext">ДАЛЬШЕ</button>
+      <button class="ghost" id="btnMenu">В НАЧАЛО</button>
+    </div>
+  </div>
+
+  <button id="sound">ЗВУК: ВКЛ</button>
+</div>
+
+<script>
+const CFG={W:540,H:900,PY:640,PPM:14,ROLL:7,LANE:90,X0:60,X1:480,R:23,
+  STEER:275,AIR:365,JUMP_T:.5,JUMP_H:40,DRAIN:1,HIT:30,KNOCK:180,ROCK:10,TRASH:5,DOCK:20};
+
+const LEVELS=[
+  {m:500,dens:.50,spd:1.00,name:"УРОВЕНЬ 1 · ПРОСПЕКТ"},
+  {m:800,dens:.62,spd:1.12,name:"УРОВЕНЬ 2 · РАЗВЯЗКА"},
+  {m:1200,dens:.72,spd:1.26,name:"УРОВЕНЬ 3 · МАГИСТРАЛЬ"}
+];
+
+const VEH={
+  car:{w:66,h:38,spd:[110,190],colors:["#D94F3D","#E4B23A","#4F9BD9","#D8DCE0","#3FAE7A","#B0574F"]},
+  truck:{w:162,h:46,spd:[85,132],colors:["#4A5560","#8A8F98","#5C6B57"]},
+  bike:{w:32,h:18,spd:[245,335],colors:["#1D1F24","#7A1F1F"]}
+};
+
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const ri=(a,b)=>Math.floor(rnd(a,b+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const hash=(i,j)=>{const n=Math.sin(i*127.1+j*311.7)*43758.5453;return n-Math.floor(n)};
+
+const cv=document.getElementById("cv");
+const ctx=cv.getContext("2d");
+const el=id=>document.getElementById(id);
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- Звук ---------------- */
+const Snd={
+  on:true,ac:null,master:null,hissGain:null,droneGain:null,beepAt:0,
+  boot(){
+    if(this.ac)return;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    this.ac=new AC();
+    this.master=this.ac.createGain();
+    this.master.gain.value=this.on?.9:0;
+    this.master.connect(this.ac.destination);
+
+    const noise=this.ac.createBufferSource();
+    const buf=this.ac.createBuffer(1,this.ac.sampleRate*2,this.ac.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    noise.buffer=buf;noise.loop=true;
+    const bp=this.ac.createBiquadFilter();bp.type="bandpass";bp.frequency.value=3200;bp.Q.value=.6;
+    this.hissGain=this.ac.createGain();this.hissGain.gain.value=0;
+    noise.connect(bp).connect(this.hissGain).connect(this.master);
+    noise.start();
+
+    const drone=this.ac.createOscillator();drone.type="sawtooth";drone.frequency.value=54;
+    const lp=this.ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=180;
+    this.droneGain=this.ac.createGain();this.droneGain.gain.value=0;
+    drone.connect(lp).connect(this.droneGain).connect(this.master);
+    drone.start();
+  },
+  ambient(level){
+    if(!this.ac)return;
+    this.hissGain.gain.setTargetAtTime(level*.05,this.ac.currentTime,.2);
+    this.droneGain.gain.setTargetAtTime(level*.10,this.ac.currentTime,.3);
+  },
+  tone(f0,f1,dur,type="triangle",vol=.22){
+    if(!this.ac||!this.on)return;
+    const t=this.ac.currentTime,o=this.ac.createOscillator(),g=this.ac.createGain();
+    o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),t+dur);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(this.master);o.start(t);o.stop(t+dur+.05);
+  },
+  burst(dur,freq,vol=.3){
+    if(!this.ac||!this.on)return;
+    const t=this.ac.currentTime,len=Math.ceil(this.ac.sampleRate*dur);
+    const b=this.ac.createBuffer(1,len,this.ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+    const s=this.ac.createBufferSource();s.buffer=b;
+    const f=this.ac.createBiquadFilter();f.type="bandpass";f.frequency.value=freq;f.Q.value=.8;
+    const g=this.ac.createGain();g.gain.value=vol;
+    s.connect(f).connect(g).connect(this.master);s.start(t);
+  },
+  jump(){this.tone(320,880,.16,"triangle",.2);this.tone(880,240,.22,"sine",.12)},
+  pickup(){this.burst(.16,1800,.22);this.tone(560,1400,.13,"sine",.14)},
+  dock(){this.tone(440,1320,.3,"square",.13)},
+  rock(){this.burst(.12,900,.25)},
+  crash(){this.burst(.35,420,.45);this.tone(180,50,.4,"square",.2)},
+  oil(){this.tone(200,90,.35,"sawtooth",.14)},
+  finish(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.tone(f,f*1.5,.22,"triangle",.18),i*110))},
+  dead(){this.tone(700,40,.7,"sine",.25);this.burst(.5,300,.2)},
+  lowBeep(t){if(t-this.beepAt<.75)return;this.beepAt=t;this.tone(1180,1180,.09,"square",.1)},
+  toggle(){
+    this.on=!this.on;
+    if(this.master)this.master.gain.value=this.on?.9:0;
+    el("sound").textContent="ЗВУК: "+(this.on?"ВКЛ":"ВЫКЛ");
+  }
+};
+
+/* ---------------- Состояние ---------------- */
+const S={
+  mode:"menu",level:0,leg:0,night:false,unlocked:false,
+  charge:100,goalY:0,camY:0,spawnY:0,t:0,shake:0,phase:0,
+  lanes:[],parts:[],floats:[],trail:[],
+  trashGot:0,trashTotal:0,dodged:0,hits:0,run:0,
+  player:{x:(CFG.X0+CFG.X1)/2,y:0,jumpT:0,oilT:0,invT:0,tilt:0,target:null},
+  keys:{},
+  lastLane:0
+};
+
+function cfgLeg(){
+  const lv=LEVELS[S.level];
+  return {m:lv.m,dens:lv.dens,spd:lv.spd*(S.leg?1.35:1),name:lv.name};
+}
+
+function say(text,warn){
+  const t=el("ticker");
+  t.textContent=text;
+  t.classList.toggle("warn",!!warn);
+}
+
+function float(text,color){
+  S.floats.push({text,color:color||"#6FD3FF",x:S.player.x,y:S.player.y+40,life:1.1,max:1.1});
+}
+
+/* ---------------- Генерация дороги ---------------- */
+function makeLane(y){
+  const lv=cfgLeg();
+  const r=Math.random();
+  const forceCalm=S.lastLane>=3;
+  if(!forceCalm&&r<lv.dens&&y>CFG.LANE*2)return trafficLane(y,lv);
+  if(!forceCalm&&r<lv.dens+.13&&y>CFG.LANE*3)return hazardLane(y);
+  return serviceLane(y);
+}
+
+function trafficLane(y,lv){
+  S.lastLane++;
+  const dir=Math.random()<.5?1:-1;
+  const roll=Math.random();
+  const type=roll<.6?"car":roll<.85?"truck":"bike";
+  const V=VEH[type];
+  const speed=rnd(V.spd[0],V.spd[1])*lv.spd;
+  const count=type==="truck"?ri(1,2):ri(2,3);
+  const track=(CFG.X1-CFG.X0)+380;
+  const step=track/count;
+  const veh=[];
+  for(let i=0;i<count;i++){
+    veh.push({x:CFG.X0-190+i*step+rnd(-26,26),type,w:V.w,h:V.h,color:pick(V.colors),bob:Math.random()*9});
+  }
+  const items=[];
+  if(Math.random()<.35)items.push(trashItem(y+rnd(-16,16)));
+  return {y,kind:"road",dir,speed,track,veh,items};
+}
+
+function hazardLane(y){
+  S.lastLane=0;
+  const items=[];
+  const n=ri(1,3);
+  for(let i=0;i<n;i++){
+    const x=rnd(CFG.X0+40,CFG.X1-40);
+    items.push(Math.random()<.55
+      ? {type:"oil",x,y:y+rnd(-18,18),r:34,rot:rnd(0,6.3)}
+      : {type:"rock",x,y:y+rnd(-18,18),r:15,rot:rnd(0,6.3)});
+  }
+  if(Math.random()<.5)items.push(trashItem(y+rnd(-20,20)));
+  return {y,kind:"hazard",dir:0,speed:0,veh:[],items};
+}
+
+function serviceLane(y){
+  S.lastLane=0;
+  const items=[];
+  const n=ri(2,4);
+  for(let i=0;i<n;i++)items.push(trashItem(y+rnd(-24,24)));
+  if(Math.random()<.16)items.push({type:"dock",x:rnd(CFG.X0+60,CFG.X1-60),y:y+rnd(-10,10),r:30,used:false});
+  return {y,kind:"service",dir:0,speed:0,veh:[],items};
+}
+
+function trashItem(y){
+  S.trashTotal++;
+  return {type:"trash",kind:pick(["paper","can","cup"]),x:rnd(CFG.X0+26,CFG.X1-26),y,r:14,rot:rnd(0,6.3),gone:false,pull:0};
+}
+
+function fillLanes(){
+  while(S.spawnY<S.camY+CFG.H+CFG.LANE){
+    if(S.spawnY<S.goalY-CFG.LANE)S.lanes.push(makeLane(S.spawnY));
+    S.spawnY+=CFG.LANE;
+  }
+  S.lanes=S.lanes.filter(l=>l.y>S.camY-320);
+}
+
+/* ---------------- Управление ---------------- */
+addEventListener("keydown",e=>{
+  if([" ","ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))e.preventDefault();
+  S.keys[e.key.toLowerCase()]=true;
+  if(e.key===" "||e.key==="ArrowUp"||e.key.toLowerCase()==="w")jump();
+  if(S.mode==="menu"&&e.key==="Enter")startRun(true);
+});
+addEventListener("keyup",e=>{S.keys[e.key.toLowerCase()]=false});
+addEventListener("blur",()=>{S.keys={}});
+
+let pointerDown=false;
+cv.addEventListener("pointerdown",e=>{
+  pointerDown=true;cv.setPointerCapture(e.pointerId);
+  S.player.target=toWorldX(e);jump();
+});
+cv.addEventListener("pointermove",e=>{if(pointerDown)S.player.target=toWorldX(e)});
+cv.addEventListener("pointerup",()=>{pointerDown=false;S.player.target=null});
+cv.addEventListener("pointercancel",()=>{pointerDown=false;S.player.target=null});
+function toWorldX(e){
+  const r=cv.getBoundingClientRect();
+  return clamp((e.clientX-r.left)/r.width*CFG.W,CFG.X0+CFG.R,CFG.X1-CFG.R);
+}
+
+function jump(){
+  if(S.mode!=="run")return;
+  const p=S.player;
+  if(p.jumpT>0||p.oilT>0)return;
+  p.jumpT=CFG.JUMP_T;
+  Snd.jump();
+  for(let i=0;i<10;i++)spark(p.x,p.y);
+}
+
+function spark(x,y){
+  S.parts.push({x:x+rnd(-16,16),y:y+rnd(-10,10),vx:rnd(-70,70),vy:rnd(-90,-10),
+    life:.4,max:.4,size:rnd(1.5,3),color:Math.random()<.5?"#FFD37A":"#FF9E3D"});
+}
+function puff(x,y,color){
+  S.parts.push({x,y,vx:rnd(-40,40),vy:rnd(-30,30),life:.6,max:.6,size:rnd(4,9),color:color||"rgba(200,210,220,.5)"});
+}
+
+/* ---------------- Обновление ---------------- */
+function update(dt){
+  S.t+=dt;
+  if(S.mode==="dead"||S.mode==="won"){S.phase+=dt;if(S.phase>1.15)endRun();return}
+  if(S.mode==="finish"){
+    S.phase+=dt;S.player.y+=CFG.ROLL*CFG.PPM*dt*.5;pushTrail();
+    S.camY+=(S.player.y-S.camY)*Math.min(1,dt*6);
+    if(S.phase>1.6){S.mode="won";S.phase=0}
+    return;
+  }
+  if(S.mode!=="run")return;
+
+  const p=S.player;
+
+  p.y+=CFG.ROLL*CFG.PPM*dt;
+  S.camY+=(p.y-S.camY)*Math.min(1,dt*7);
+
+  if(p.oilT>0){
+    p.oilT-=dt;
+    p.x+=Math.sin(S.t*11)*160*dt;
+  }else{
+    const speed=p.jumpT>0?CFG.AIR:CFG.STEER;
+    let dir=0;
+    if(S.keys["arrowleft"]||S.keys["a"]||S.keys["ф"])dir-=1;
+    if(S.keys["arrowright"]||S.keys["d"]||S.keys["в"])dir+=1;
+    if(dir===0&&p.target!==null){
+      const d=p.target-p.x;
+      if(Math.abs(d)>4)dir=Math.sign(d);
+    }
+    p.x+=dir*speed*dt;
+    p.tilt+=(dir*.22-p.tilt)*Math.min(1,dt*10);
+  }
+  p.x=clamp(p.x,CFG.X0+CFG.R,CFG.X1-CFG.R);
+  if(p.jumpT>0)p.jumpT=Math.max(0,p.jumpT-dt);
+  if(p.invT>0)p.invT-=dt;
+  if(S.shake>0)S.shake=Math.max(0,S.shake-dt*2.4);
+
+  S.charge-=CFG.DRAIN*dt;
+  if(S.charge<25)Snd.lowBeep(S.t);
+  if(S.charge<=0){S.charge=0;die();return}
+
+  fillLanes();
+  moveTraffic(dt);
+  collide();
+  pushTrail();
+  stepParticles(dt);
+
+  if(p.y>=S.goalY){
+    S.mode="finish";S.phase=0;Snd.finish();say("ЦЕЛЬ ДОСТИГНУТА · НАЧИНАЮ УБОРКУ");
+  }
+  syncHud();
+}
+
+function moveTraffic(dt){
+  for(const l of S.lanes){
+    if(l.kind!=="road")continue;
+    for(const v of l.veh){
+      v.x+=l.dir*l.speed*dt;
+      const lo=CFG.X0-190,hi=lo+l.track;
+      if(l.dir>0&&v.x>hi)v.x-=l.track;
+      if(l.dir<0&&v.x<lo)v.x+=l.track;
+    }
+  }
+}
+
+function collide(){
+  const p=S.player;
+  const airborne=p.jumpT>0;
+  for(const l of S.lanes){
+    if(Math.abs(l.y-p.y)>90)continue;
+    for(const v of l.veh){
+      if(p.invT>0)break;
+      const dx=Math.abs(p.x-v.x)-(v.w/2+CFG.R*.75);
+      const dy=Math.abs(p.y-l.y)-(v.h/2+CFG.R*.7);
+      if(dx<0&&dy<0)hitVehicle();
+    }
+    for(const it of l.items){
+      if(it.gone||it.used)continue;
+      const d=Math.hypot(p.x-it.x,p.y-it.y);
+      if(it.type==="trash"){
+        if(d<72){it.pull=Math.min(1,it.pull+.08);it.x+=(p.x-it.x)*.16;it.y+=(p.y-it.y)*.16}
+        if(d<26)takeTrash(it);
+      }else if(it.type==="dock"){
+        if(d<it.r+CFG.R*.6)useDock(it);
+      }else if(!airborne&&p.invT<=0){
+        if(it.type==="oil"&&d<it.r+CFG.R*.5)slip(it);
+        if(it.type==="rock"&&d<it.r+CFG.R*.7)hitRock(it);
+      }
+    }
+  }
+}
+
+function takeTrash(it){
+  it.gone=true;S.trashGot++;
+  S.charge=Math.min(100,S.charge+CFG.TRASH);
+  Snd.pickup();say("МУСОР УНИЧТОЖЕН · +5%");
+  float("+5%","#7CE38B");
+  for(let i=0;i<6;i++)puff(it.x,it.y,"rgba(232,228,217,.55)");
+}
+
+function useDock(it){
+  it.used=true;
+  S.charge=Math.min(100,S.charge+CFG.DOCK);
+  Snd.dock();say("СТАНЦИЯ · БЫСТРАЯ ЗАРЯДКА +20%");
+  float("+20%","#6FD3FF");
+  for(let i=0;i<14;i++)S.parts.push({x:it.x,y:it.y,vx:rnd(-120,120),vy:rnd(-120,120),life:.5,max:.5,size:2.5,color:"#6FD3FF"});
+}
+
+function slip(it){
+  it.gone=true;
+  S.player.oilT=1;
+  Snd.oil();say("ЩЁТКИ ЗАЛИПЛИ · УПРАВЛЕНИЕ ПОТЕРЯНО",true);
+  float("СКОЛЬЖЕНИЕ","#E4B23A");
+}
+
+function hitRock(it){
+  it.gone=true;
+  S.charge-=CFG.ROCK;S.player.y-=CFG.KNOCK*.35;S.player.invT=.7;S.shake=.5;
+  Snd.rock();say("УДАР О КАМЕНЬ · −10%",true);
+  float("−10%","#FF4D4D");
+  for(let i=0;i<8;i++)spark(it.x,it.y);
+  if(S.charge<=0)die();
+}
+
+function hitVehicle(){
+  S.hits++;
+  S.charge-=CFG.HIT;
+  S.player.y-=CFG.KNOCK;
+  S.player.invT=1.4;
+  S.player.jumpT=0;
+  S.shake=1;
+  Snd.crash();say("ОШИБКА. ПЕРЕЗАГРУЗКА...",true);
+  float("−30%","#FF4D4D");
+  for(let i=0;i<18;i++)spark(S.player.x,S.player.y);
+  if(S.charge<=0)die();
+}
+
+function die(){
+  S.charge=0;S.mode="dead";S.phase=0;Snd.dead();Snd.ambient(0);
+  say("АККУМУЛЯТОР РАЗРЯЖЕН",true);
+}
+
+function pushTrail(){
+  const p=S.player;
+  const last=S.trail[S.trail.length-1];
+  if(!last||Math.hypot(p.x-last.x,p.y-last.y)>7)S.trail.push({x:p.x,y:p.y});
+  if(S.trail.length>260)S.trail.shift();
+}
+
+function stepParticles(dt){
+  for(const q of S.parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=40*dt;q.life-=dt}
+  S.parts=S.parts.filter(q=>q.life>0);
+  for(const f of S.floats){f.y+=42*dt;f.life-=dt}
+  S.floats=S.floats.filter(f=>f.life>0);
+}
+
+/* ---------------- Отрисовка ---------------- */
+const sy=y=>CFG.PY-(y-S.camY);
+
+function draw(){
+  ctx.save();
+  if(S.shake>0&&!reduceMotion){
+    ctx.translate(rnd(-6,6)*S.shake,rnd(-5,5)*S.shake);
+  }
+  drawGround();
+  drawTrail();
+  drawItems();
+  drawVehicles();
+  if(S.mode!=="dead"||S.phase<.35)drawRoomba();
+  drawParticles();
+  ctx.restore();
+  if(S.mode==="dead")drawTvOff();
+  if(S.mode==="finish"||S.mode==="won")drawFinishFlash();
+}
+
+function drawGround(){
+  const night=S.night;
+  ctx.fillStyle=night?"#0A0E1A":"#191C21";
+  ctx.fillRect(0,0,CFG.W,CFG.H);
+
+  // обочины
+  ctx.fillStyle=night?"#111726":"#23272C";
+  ctx.fillRect(0,0,CFG.X0,CFG.H);
+  ctx.fillRect(CFG.X1,0,CFG.W-CFG.X1,CFG.H);
+
+  // асфальт
+  ctx.fillStyle=night?"#151A26":"#2E3238";
+  ctx.fillRect(CFG.X0,0,CFG.X1-CFG.X0,CFG.H);
+
+  // пыль
+  const top=S.camY+CFG.H-CFG.PY, bottom=S.camY-CFG.PY;
+  const c0=Math.floor(bottom/34),c1=Math.ceil(top/34);
+  ctx.fillStyle=night?"rgba(120,140,180,.10)":"rgba(190,196,204,.13)";
+  for(let j=c0;j<=c1;j++){
+    for(let i=0;i<13;i++){
+      const h=hash(i,j);
+      const x=CFG.X0+((i+h)/13)*(CFG.X1-CFG.X0);
+      const y=sy(j*34+h*30);
+      const s=1+h*2.6;
+      ctx.fillRect(x,y,s,s);
+    }
+  }
+
+  // бордюр
+  ctx.fillStyle=night?"#2A3348":"#585F68";
+  ctx.fillRect(CFG.X0-8,0,8,CFG.H);
+  ctx.fillRect(CFG.X1,0,8,CFG.H);
+
+  // разметка полос
+  const lane0=Math.floor((S.camY-CFG.PY)/CFG.LANE)-1;
+  ctx.strokeStyle=night?"rgba(190,205,255,.22)":"rgba(232,228,217,.32)";
+  ctx.lineWidth=3;ctx.setLineDash([26,22]);
+  for(let k=lane0;k<lane0+16;k++){
+    const y=sy(k*CFG.LANE+CFG.LANE/2);
+    if(y<-20||y>CFG.H+20)continue;
+    ctx.beginPath();ctx.moveTo(CFG.X0+6,y);ctx.lineTo(CFG.X1-6,y);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  drawStart();
+  drawCarpet();
+}
+
+function drawStart(){
+  const y=sy(-24);
+  if(y<-80||y>CFG.H+120)return;
+  ctx.fillStyle=S.night?"#1B2233":"#3A4048";
+  ctx.fillRect(0,y,CFG.W,140);
+  ctx.fillStyle=S.night?"rgba(140,170,220,.14)":"rgba(232,228,217,.10)";
+  for(let i=0;i<9;i++)ctx.fillRect(i*62,y+8,54,124);
+}
+
+function drawCarpet(){
+  const y=sy(S.goalY);
+  if(y>CFG.H+40)return;
+  const h=260;
+  ctx.fillStyle=S.night?"#241A2E":"#6E3F52";
+  ctx.fillRect(0,y-h,CFG.W,h);
+  ctx.fillStyle=S.night?"rgba(255,190,230,.09)":"rgba(255,220,200,.10)";
+  for(let i=0;i<14;i++)ctx.fillRect(18+i*36,y-h+16,20,h-32);
+  ctx.strokeStyle="rgba(232,228,217,.5)";ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(CFG.W,y);ctx.stroke();
+  ctx.fillStyle="rgba(232,228,217,.85)";
+  for(let i=0;i<18;i++)if(i%2)ctx.fillRect(i*30,y-6,30,12);
+  ctx.font="600 15px 'JetBrains Mono', monospace";
+  ctx.fillStyle=S.night?"#FFD9F0":"#FFE9D9";
+  ctx.textAlign="center";
+  ctx.fillText("КОВЁР · ЗОНА УБОРКИ",CFG.W/2,y-h+55);
+  ctx.textAlign="left";
+}
+
+function drawTrail(){
+  if(S.trail.length<2)return;
+  ctx.save();
+  ctx.lineCap="round";ctx.lineJoin="round";
+  ctx.strokeStyle=S.night?"rgba(120,170,255,.20)":"rgba(150,163,175,.55)";
+  ctx.lineWidth=CFG.R*1.9;
+  ctx.beginPath();
+  ctx.moveTo(S.trail[0].x,sy(S.trail[0].y));
+  for(const t of S.trail)ctx.lineTo(t.x,sy(t.y));
+  ctx.stroke();
+  ctx.strokeStyle=S.night?"rgba(160,210,255,.16)":"rgba(214,222,230,.22)";
+  ctx.lineWidth=CFG.R*1.9-9;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawItems(){
+  for(const l of S.lanes){
+    for(const it of l.items){
+      if(it.gone)continue;
+      const y=sy(it.y);
+      if(y<-60||y>CFG.H+60)continue;
+      if(it.type==="oil")drawOil(it.x,y,it);
+      else if(it.type==="rock")drawRock(it.x,y,it);
+      else if(it.type==="dock")drawDock(it.x,y,it);
+      else drawTrash(it.x,y,it);
+    }
+  }
+}
+
+function drawOil(x,y,it){
+  ctx.save();ctx.translate(x,y);ctx.rotate(it.rot);
+  const g=ctx.createRadialGradient(0,0,2,0,0,it.r);
+  g.addColorStop(0,"rgba(20,22,30,.95)");
+  g.addColorStop(.6,"rgba(28,30,42,.85)");
+  g.addColorStop(1,"rgba(28,30,42,0)");
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.ellipse(0,0,it.r,it.r*.72,0,0,6.3);ctx.fill();
+  ctx.strokeStyle="rgba(120,90,200,.45)";ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(-3,-2,it.r*.55,it.r*.34,.4,0,6.3);ctx.stroke();
+  ctx.restore();
+}
+
+function drawRock(x,y,it){
+  ctx.save();ctx.translate(x,y);ctx.rotate(it.rot);
+  ctx.fillStyle="rgba(0,0,0,.35)";
+  ctx.beginPath();ctx.ellipse(2,5,it.r,it.r*.5,0,0,6.3);ctx.fill();
+  ctx.fillStyle="#6B7178";
+  ctx.beginPath();
+  ctx.moveTo(-it.r,4);ctx.lineTo(-it.r*.4,-it.r*.8);ctx.lineTo(it.r*.5,-it.r*.6);
+  ctx.lineTo(it.r,3);ctx.lineTo(0,it.r*.6);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#8A9199";
+  ctx.beginPath();ctx.moveTo(-it.r*.4,-it.r*.8);ctx.lineTo(it.r*.5,-it.r*.6);ctx.lineTo(0,0);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+function drawDock(x,y,it){
+  ctx.save();ctx.translate(x,y);
+  const pulse=.6+.4*Math.sin(S.t*4);
+  ctx.fillStyle=it.used?"rgba(90,100,110,.5)":`rgba(111,211,255,${.16*pulse+.1})`;
+  ctx.fillRect(-it.r,-it.r*.7,it.r*2,it.r*1.4);
+  ctx.strokeStyle=it.used?"rgba(120,130,140,.6)":"#6FD3FF";
+  ctx.lineWidth=2;ctx.strokeRect(-it.r,-it.r*.7,it.r*2,it.r*1.4);
+  ctx.fillStyle=it.used?"rgba(140,150,160,.7)":"#6FD3FF";
+  ctx.beginPath();
+  ctx.moveTo(3,-13);ctx.lineTo(-6,2);ctx.lineTo(0,2);ctx.lineTo(-3,13);ctx.lineTo(7,-3);ctx.lineTo(1,-3);
+  ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+function drawTrash(x,y,it){
+  ctx.save();ctx.translate(x,y);ctx.rotate(it.rot+it.pull*8);
+  const s=1-it.pull*.5;
+  ctx.scale(s,s);
+  ctx.fillStyle="rgba(0,0,0,.3)";
+  ctx.beginPath();ctx.ellipse(1,6,10,4,0,0,6.3);ctx.fill();
+  if(it.kind==="can"){
+    ctx.fillStyle="#B7BEC6";ctx.fillRect(-6,-11,12,20);
+    ctx.fillStyle="#E4523D";ctx.fillRect(-6,-4,12,7);
+    ctx.fillStyle="#DDE3E9";ctx.fillRect(-6,-11,12,3);
+  }else if(it.kind==="cup"){
+    ctx.fillStyle="#E8E4D9";
+    ctx.beginPath();ctx.moveTo(-7,-10);ctx.lineTo(7,-10);ctx.lineTo(5,10);ctx.lineTo(-5,10);ctx.closePath();ctx.fill();
+    ctx.fillStyle="#8A5A3B";ctx.fillRect(-8,-12,16,4);
+  }else{
+    ctx.fillStyle="#F0EDE4";
+    ctx.beginPath();ctx.moveTo(-10,-7);ctx.lineTo(9,-9);ctx.lineTo(11,6);ctx.lineTo(-8,9);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="rgba(120,125,130,.7)";ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.moveTo(-6,-3);ctx.lineTo(6,-4);ctx.moveTo(-6,2);ctx.lineTo(5,1);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawVehicles(){
+  for(const l of S.lanes){
+    if(l.kind!=="road")continue;
+    const y=sy(l.y);
+    if(y<-120||y>CFG.H+120)continue;
+    for(const v of l.veh)drawVehicle(v,y,l.dir);
+  }
+}
+
+function drawVehicle(v,y,dir){
+  const w=v.w,h=v.h;
+  ctx.save();
+  ctx.translate(v.x,y);
+  ctx.fillStyle="rgba(0,0,0,.42)";
+  ctx.beginPath();ctx.ellipse(0,h*.42,w*.52,h*.42,0,0,6.3);ctx.fill();
+
+  if(S.night){ctx.shadowColor=v.color;ctx.shadowBlur=14}
+  // корпус (вид сверху-сбоку)
+  ctx.fillStyle=shade(v.color,-.28);
+  roundRect(-w/2,-h/2+4,w,h,7);ctx.fill();
+  ctx.fillStyle=v.color;
+  roundRect(-w/2,-h/2,w,h-4,7);ctx.fill();
+  ctx.shadowBlur=0;
+
+  // крыша / кабина
+  ctx.fillStyle=shade(v.color,.16);
+  if(v.type==="truck"){
+    const cab=dir>0?w/2-40:-w/2+4;
+    roundRect(cab,-h/2+5,36,h-14,4);ctx.fill();
+    ctx.fillStyle="rgba(20,24,30,.55)";
+    for(let i=0;i<5;i++)ctx.fillRect(-w/2+44+i*22,-h/2+6,4,h-16);
+  }else if(v.type==="car"){
+    roundRect(-w*.22,-h/2+5,w*.46,h-14,5);ctx.fill();
+    ctx.fillStyle="rgba(30,40,52,.75)";
+    roundRect(-w*.19,-h/2+7,w*.4,h-18,4);ctx.fill();
+  }else{
+    ctx.fillStyle="#2A2E36";
+    ctx.beginPath();ctx.arc(0,0,h*.42,0,6.3);ctx.fill();
+  }
+
+  // фары по направлению движения
+  const fx=dir>0?w/2-4:-w/2+4;
+  ctx.fillStyle=S.night?"#FFF3C4":"#FFE9A8";
+  ctx.fillRect(fx-(dir>0?3:0),-h/2+6,4,6);
+  ctx.fillRect(fx-(dir>0?3:0),h/2-14,4,6);
+  if(S.night){
+    const g=ctx.createLinearGradient(fx,0,fx+dir*90,0);
+    g.addColorStop(0,"rgba(255,240,190,.35)");g.addColorStop(1,"rgba(255,240,190,0)");
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.moveTo(fx,-h/2+4);ctx.lineTo(fx+dir*95,-h*1.1);ctx.lineTo(fx+dir*95,h*1.1);ctx.lineTo(fx,h/2-4);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawRoomba(){
+  const p=S.player;
+  const t=p.jumpT>0?1-p.jumpT/CFG.JUMP_T:0;
+  const hop=p.jumpT>0?Math.sin(Math.PI*t)*CFG.JUMP_H:0;
+  const x=p.x,y=sy(p.y);
+  const blink=p.invT>0&&Math.floor(S.t*18)%2===0;
+
+  ctx.save();
+  ctx.fillStyle="rgba(0,0,0,.45)";
+  ctx.beginPath();ctx.ellipse(x,y+8,CFG.R*(1-hop/140),CFG.R*.5*(1-hop/160),0,0,6.3);ctx.fill();
+  ctx.restore();
+
+  if(blink)return;
+
+  ctx.save();
+  ctx.translate(x,y-hop);
+  ctx.rotate(p.tilt*.5+(p.oilT>0?Math.sin(S.t*20)*.25:0));
+
+  if(S.night){
+    const g=ctx.createLinearGradient(0,-10,0,-180);
+    g.addColorStop(0,"rgba(140,220,255,.28)");g.addColorStop(1,"rgba(140,220,255,0)");
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.moveTo(-16,-8);ctx.lineTo(-70,-190);ctx.lineTo(70,-190);ctx.lineTo(16,-8);ctx.closePath();ctx.fill();
+  }
+
+  // борт
+  ctx.fillStyle="#12457F";
+  ctx.beginPath();ctx.ellipse(0,6,CFG.R,CFG.R*.82,0,0,6.3);ctx.fill();
+  // верхняя крышка
+  const g=ctx.createRadialGradient(-7,-8,3,0,0,CFG.R+6);
+  g.addColorStop(0,"#5AA8F5");g.addColorStop(.55,"#1F7AE0");g.addColorStop(1,"#14528F");
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.ellipse(0,0,CFG.R,CFG.R*.82,0,0,6.3);ctx.fill();
+  // бампер
+  ctx.strokeStyle="#0E3A6B";ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(0,0,CFG.R-1,CFG.R*.82-1,0,0,6.3);ctx.stroke();
+  // приборная панель
+  ctx.fillStyle="rgba(10,16,26,.85)";
+  roundRect(-11,-6,22,11,3);ctx.fill();
+  const lowPower=S.charge<25;
+  ctx.fillStyle=lowPower?(Math.floor(S.t*6)%2?"#FF4D4D":"#5A1D1D"):S.charge<55?"#E4B23A":"#7CE38B";
+  ctx.fillRect(-8,-3,Math.max(2,15*S.charge/100),5);
+  // щётки
+  drawBrush(-CFG.R*.62,-CFG.R*.42);
+  drawBrush(CFG.R*.62,-CFG.R*.42);
+  ctx.restore();
+}
+
+function drawBrush(bx,by){
+  ctx.save();ctx.translate(bx,by);ctx.rotate(S.t*14);
+  ctx.strokeStyle="rgba(232,228,217,.75)";ctx.lineWidth=2;
+  for(let i=0;i<3;i++){
+    const a=i*2.09;
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*9,Math.sin(a)*9);ctx.stroke();
+  }
+  ctx.fillStyle="#0E3A6B";ctx.beginPath();ctx.arc(0,0,3,0,6.3);ctx.fill();
+  ctx.restore();
+}
+
+function drawParticles(){
+  for(const q of S.parts){
+    ctx.globalAlpha=Math.max(0,q.life/q.max);
+    ctx.fillStyle=q.color;
+    ctx.fillRect(q.x-q.size/2,sy(q.y)-q.size/2,q.size,q.size);
+  }
+  ctx.globalAlpha=1;
+  ctx.font="700 15px 'JetBrains Mono', monospace";ctx.textAlign="center";
+  for(const f of S.floats){
+    ctx.globalAlpha=Math.max(0,f.life/f.max);
+    ctx.fillStyle=f.color;
+    ctx.fillText(f.text,f.x,sy(f.y));
+  }
+  ctx.globalAlpha=1;ctx.textAlign="left";
+}
+
+function drawTvOff(){
+  const k=Math.min(1,S.phase/1.05);
+  ctx.fillStyle="rgba(0,0,0,"+Math.min(1,k*1.4)+")";
+  ctx.fillRect(0,0,CFG.W,CFG.H);
+  const h=Math.max(0,(1-k)*CFG.H*.5);
+  const w=k<.75?CFG.W:CFG.W*(1-(k-.75)/.25);
+  ctx.fillStyle="rgba(232,228,217,"+(1-k*.5)+")";
+  ctx.fillRect((CFG.W-w)/2,CFG.H/2-Math.max(1.5,h*.02),w,Math.max(2,h*.04));
+}
+
+function drawFinishFlash(){
+  const k=S.mode==="won"?1:Math.min(1,S.phase/1.6);
+  ctx.fillStyle="rgba(255,255,255,"+(.10*(1-k))+")";
+  ctx.fillRect(0,0,CFG.W,CFG.H);
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function shade(hex,amt){
+  const n=parseInt(hex.slice(1),16);
+  const f=c=>clamp(Math.round(amt<0?c*(1+amt):c+(255-c)*amt),0,255);
+  return `rgb(${f(n>>16&255)},${f(n>>8&255)},${f(n&255)})`;
+}
+
+/* ---------------- HUD и экраны ---------------- */
+function syncHud(){
+  const pct=Math.round(S.charge);
+  el("bar").style.width=pct+"%";
+  el("bar").style.background=pct<25?"var(--alarm)":pct<55?"#E4B23A":"var(--charge)";
+  el("pct").textContent=pct+"%";
+  el("hud").classList.toggle("low",pct<25);
+  el("dist").textContent=Math.max(0,Math.round((S.goalY-S.player.y)/CFG.PPM))+" м";
+  el("trash").textContent=S.trashGot+" / "+S.trashTotal;
+}
+
+function startRun(fresh){
+  Snd.boot();
+  if(fresh){S.level=0;S.leg=0;S.charge=100}
+  const lv=cfgLeg();
+  S.mode="run";S.phase=0;
+  S.goalY=lv.m*CFG.PPM;
+  S.camY=0;S.spawnY=0;S.lanes=[];S.trail=[];S.parts=[];S.floats=[];
+  S.trashGot=0;S.trashTotal=0;S.hits=0;S.lastLane=0;S.run=S.t;
+  S.player={x:(CFG.X0+CFG.X1)/2,y:0,jumpT:0,oilT:0,invT:0,tilt:0,target:null};
+  fillLanes();
+  el("hud").classList.remove("hidden");
+  el("cardMenu").classList.add("hidden");
+  el("cardEnd").classList.add("hidden");
+  el("screens").classList.add("hidden");
+  say(lv.name+" · "+(S.leg?"ОБРАТНЫЙ ПУТЬ":"ВПЕРЁД К КОВРУ"));
+  Snd.ambient(1);
+  syncHud();
+}
+
+function endRun(){
+  const perfect=S.trashTotal>0&&S.trashGot===S.trashTotal;
+  const won=S.mode==="won";
+  if(won&&perfect&&!S.unlocked){S.unlocked=true;el("btnNight").classList.remove("hidden")}
+
+  const last=won&&S.level===LEVELS.length-1&&S.leg===1;
+  el("endTag").textContent=won?"ОТЧЁТ ОБ УБОРКЕ":"АВАРИЙНОЕ ЗАВЕРШЕНИЕ";
+  el("endTitle").textContent=last?"Хозяйка ничего не заметила"
+    :won?"Идеальная чистота!":"Аккумулятор разряжен";
+
+  const passed=Math.round(Math.min(S.player.y,S.goalY)/CFG.PPM);
+  el("report").innerHTML=`
+    <div><span>Пройдено</span><b>${passed} из ${cfgLeg().m} м</b></div>
+    <div><span>Мусора уничтожено</span><b class="${perfect?"good":""}">${S.trashGot} из ${S.trashTotal}${perfect?" · 100%":""}</b></div>
+    <div><span>Столкновений</span><b>${S.hits}</b></div>
+    <div><span>Остаток заряда</span><b>${Math.round(S.charge)}%</b></div>
+    ${perfect&&won?'<div><span>Открыт режим</span><b class="good">НОЧНОЙ УБОРЩИК</b></div>':""}`;
+
+  el("btnNext").textContent=last?"ЕЩЁ РАЗ":won?"ДАЛЬШЕ":"ПОВТОРИТЬ ПОПЫТКУ";
+  el("screens").classList.remove("hidden");
+  el("cardEnd").classList.remove("hidden");
+  el("hud").classList.add("hidden");
+  S.mode="menu";
+  S.pendingWin=won;S.pendingLast=last;
+  Snd.ambient(0);
+}
+
+el("btnStart").onclick=()=>startRun(true);
+el("btnNight").onclick=()=>{
+  S.night=!S.night;
+  el("btnNight").textContent=S.night?"РЕЖИМ: НОЧНОЙ УБОРЩИК ✦":"РЕЖИМ «НОЧНОЙ УБОРЩИК»";
+};
+el("btnMenu").onclick=()=>{
+  el("cardEnd").classList.add("hidden");
+  el("cardMenu").classList.remove("hidden");
+};
+el("btnNext").onclick=()=>{
+  if(!S.pendingWin){S.charge=100;startRun(false);return}
+  if(S.pendingLast){startRun(true);return}
+  if(S.leg===0){S.leg=1;S.charge=Math.min(100,S.charge+25)}
+  else{S.leg=0;S.level++;S.charge=100}
+  startRun(false);
+};
+el("sound").onclick=()=>{Snd.boot();Snd.toggle()};
+
+/* ---------------- Цикл ---------------- */
+let prev=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-prev)/1000);
+  prev=now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+document.fonts.ready.then(()=>requestAnimationFrame(loop));
+</script>
+</body>
+</html>

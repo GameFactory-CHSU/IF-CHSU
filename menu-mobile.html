@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ИгроФабрика</title>
+  <link rel="icon" href="img/логоИФ.png" type="image/png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    a {
+      text-decoration: none;
+      cursor: pointer;
+    }
+    body {
+      overflow: hidden;
+      background-color: rgba(0, 0, 0, 0.7);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    .menuBox {
+      width: 100%;
+      max-width: 320px;
+      padding: 20px;
+    }
+    .logo-links {
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+      margin: 15px 0 25px;
+    }
+    .logo-link {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .logo-link img {
+      width: 70%;
+      height: auto;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+    #IF:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+      background: rgba(46, 204, 113, 0.2);
+    }
+    #CHSU:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 5px 15px rgba(226, 59, 59, 0.4);
+      background: rgba(226, 59, 59, 0.2);
+    }
+    .menuNav {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .menuNav li {
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    .menuNav a {
+      display: block;
+      color: #fff;
+      padding: 14px 20px;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      font-size: 16px;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .menuNav a:hover {
+      background-color: rgba(17, 255, 0, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(17, 255, 0, 0.2);
+      border-color: rgba(17, 255, 0, 0.4);
+    }
+    .menuNav a.active {
+      background: rgba(17, 255, 0, 0.25);
+      border-color: rgba(17, 255, 0, 0.5);
+    }
+    .menuNav a.active::after {
+      content: '';
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40%;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+    }
+    .menu-item {
+      margin-bottom: 5px;
+    }
+    .menu-item > .menu-link {
+      border-radius: 12px 12px 0 0 !important;
+      margin-bottom: 0;
+    }
+    .submenu {
+      display: block !important;
+      width: 100%;
+      margin: 0;
+      padding: 8px 12px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 0 0 12px 12px;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: none;
+    }
+    .submenu-item {
+      list-style: none;
+      padding: 0;
+      margin: 4px 0;
+    }
+    .submenu-item a {
+      padding: 8px 16px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+      background: transparent;
+      border-radius: 6px;
+      margin: 0;
+      text-align: left;
+      border: none;
+      box-shadow: none;
+      position: relative;
+    }
+    .submenu-item a:hover {
+      background-color: rgba(17, 255, 0, 0.15);
+      transform: none;
+    }
+    .submenu-item a.active {
+      color: #fff;
+      font-weight: 500;
+      background: rgba(17, 255, 0, 0.15);
+    }
+    .submenu-item a.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(17, 255, 0, 0.8);
+      border-radius: 2px;
+    }
+    .menu-item:hover > .menu-link {
+      background-color: rgba(17, 255, 0, 0.4);
+    }
+    .menu-item:hover .submenu {
+      background: rgba(0, 0, 0, 0.4);
+    }
+    @media (max-width: 400px) {
+      .menuBox {
+        padding: 10px;
+      }
+      .menuNav {
+        gap: 8px;
+      }
+      .menuNav a {
+        padding: 12px 15px;
+      }
+      .submenu {
+        padding: 6px 10px 10px;
+      }
+      .submenu-item a {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="menuBox">
+    <div class="logo-links">
+      <a href="https://vk.com/igrofabrika_chsu?from=groups" target="_parent" class="logo-link" id="IF"><img src="img/логоИФ.png"></a>
+      <a href="https://www.chsu.ru/" target="_parent" class="logo-link" id="CHSU"><img src="img/ЧГУ-лого.png"></a>
+    </div>
+    <ul class="menuNav">
+      <li><a href="index.html" target="_parent" class="menu-link">Главная</a></li>
+      <li><a href="news.html" target="_parent" class="menu-link">Новости</a></li>
+      <li class="menu-item">
+        <a href="activ.html" target="_parent" class="menu-link">Мероприятия</a>
+        <ul class="submenu">
+          <li class="submenu-item">
+            <a href="archive.html" target="_parent" class="submenu-link">Архив</a>
+          </li>
+          <li class="submenu-item">
+            <a href="archive.html#ifest-2025" target="_parent" class="submenu-link">ИФест</a>
+          </li>
+          <li class="submenu-item">
+            <a href="archive.html#omut-autumn-2024" target="_parent" class="submenu-link">ОМУТ</a>
+          </li>
+        </ul>
+      </li>
+      <li><a href="projects.html" target="_parent" class="menu-link">Проекты</a></li>
+      <li><a href="links.html" target="_parent" class="menu-link">О нас</a></li>
+    </ul>
+  </div>
+  
+  <script>
+    // Подсветка активной страницы
+    window.addEventListener('message', function(event) {
+      const currentPage = event.data;
+      const menuLinks = document.querySelectorAll('.menu-link, .submenu-link');
+      menuLinks.forEach(link => {
+        link.classList.remove('active');
+        const linkPage = link.getAttribute('href');
+        if (linkPage === currentPage) {
+          link.classList.add('active');
+          if (link.classList.contains('submenu-link')) {
+            const parentItem = link.closest('.menu-item');
+            if (parentItem) {
+              parentItem.querySelector('.menu-link').classList.add('active');
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body> 
+</html>

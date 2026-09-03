@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Архив мероприятий | ИгроФабрика ЧГУ</title>
+  <meta name="description" content="Архив турниров и геймджемов ИгроФабрика ЧГУ: ИФест, ОМУТ, результаты и фотографии.">
+  <link rel="canonical" href="https://vladboss51.github.io/GameFabric-CHSU/archive.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:site_name" content="ИгроФабрика ЧГУ">
+  <meta property="og:title" content="Архив мероприятий | ИгроФабрика ЧГУ">
+  <meta property="og:description" content="Архив турниров и геймджемов ИгроФабрика ЧГУ: ИФест, ОМУТ, результаты и фотографии.">
+  <meta property="og:url" content="https://vladboss51.github.io/GameFabric-CHSU/archive.html">
+  <meta property="og:image" content="https://vladboss51.github.io/GameFabric-CHSU/img/og-image.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Архив мероприятий | ИгроФабрика ЧГУ">
+  <meta name="twitter:description" content="Архив турниров и геймджемов ИгроФабрика ЧГУ: ИФест, ОМУТ, результаты и фотографии.">
+  <meta name="twitter:image" content="https://vladboss51.github.io/GameFabric-CHSU/img/og-image.jpg">
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="img/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+</head>
+<body>
+  <a href="#main" class="skip-link">Перейти к содержимому</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">
+        <img src="img/логоИФ.png" alt="Логотип ИгроФабрика" class="brand-logo" width="36" height="36">
+        <span class="brand-name">ИгроФабрика</span>
+      </a>
+      <nav class="main-nav" aria-label="Основная навигация">
+        <ul class="nav-list">
+          <li class="nav-item"><a href="index.html" class="nav-link" data-page="index.html">Главная</a></li>
+          <li class="nav-item"><a href="news.html" class="nav-link" data-page="news.html">Новости</a></li>
+          <li class="nav-item"><a href="games.html" class="nav-link" data-page="games.html">Игры</a></li>
+          <li class="nav-item has-sub">
+            <a href="activ.html" class="nav-link" data-page="activ.html">Мероприятия</a>
+            <ul class="sub-nav">
+              <li><a href="archive.html">Архив</a></li>
+              <li><a href="archive.html?festival=ifest#ifest-2025">ИФест</a></li>
+              <li><a href="archive.html?festival=omut#omut-autumn-2024">ОМУТ</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a href="links.html" class="nav-link" data-page="links.html">О нас</a></li>
+        </ul>
+      </nav>
+      <a href="forma_wellcome.html" class="header-cta">Вступить</a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="main-nav-mobile">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav class="mobile-nav" id="main-nav-mobile" aria-label="Мобильная навигация">
+      <ul>
+        <li><a href="index.html" data-page="index.html">Главная</a></li>
+        <li><a href="news.html" data-page="news.html">Новости</a></li>
+        <li><a href="games.html" data-page="games.html">Игры</a></li>
+        <li class="mobile-has-sub">
+          <button class="mobile-sub-toggle" aria-expanded="false">Мероприятия <span>▾</span></button>
+          <ul class="mobile-sub-list">
+            <li><a href="activ.html" data-page="activ.html">Все мероприятия</a></li>
+            <li><a href="archive.html">Архив</a></li>
+            <li><a href="archive.html?festival=ifest#ifest-2025">ИФест</a></li>
+            <li><a href="archive.html?festival=omut#omut-autumn-2024">ОМУТ</a></li>
+          </ul>
+        </li>
+        <li><a href="links.html" data-page="links.html">О нас</a></li>
+        <li><a href="forma_wellcome.html" class="mobile-cta">Вступить в клуб</a></li>
+      </ul>
+    </nav>
+  </header>
+  <button class="back-to-top" title="Наверх" aria-label="Наверх">↑</button>
+
+  <main id="main">
+    <h1 class="page-title">Архив мероприятий</h1>
+    <div class="content-container">
+      <div class="filters">
+        <div class="filter-group">
+          <span class="filter-label">Фестиваль</span>
+          <div class="filter-pills" data-filter="festival" role="group" aria-label="Фильтр по фестивалю">
+            <button type="button" class="filter-pill active" data-value="all">Все фестивали</button>
+            <button type="button" class="filter-pill" data-value="ifest">ИФест</button>
+            <button type="button" class="filter-pill" data-value="omut">ОМУТ</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Год</span>
+          <div class="filter-pills" data-filter="year" role="group" aria-label="Фильтр по году">
+            <button type="button" class="filter-pill active" data-value="all">Все года</button>
+            <button type="button" class="filter-pill" data-value="2025">2025</button>
+            <button type="button" class="filter-pill" data-value="2024">2024</button>
+          </div>
+        </div>
+      </div>
+
+      <article class="event-card" id="ifest-2025">
+        <div class="event-header">
+          <h3 class="event-title">ИФест 2025</h3>
+          <div class="event-meta">
+            <span class="meta-item">📅 23 апреля – 16 мая 2025</span>
+            <span class="meta-item">👥 75 участников</span>
+          </div>
+        </div>
+
+        <div class="discipline" id="cs2-2025">
+          <h4 class="discipline-title">CS2 (2 на 2)</h4>
+          <div class="discipline-meta"><span>📅 23 апреля 2025</span><span>📍 очно</span><span>👥 16 команд</span></div>
+          <p>Турнир по CS2 в формате 2 на 2 проходил в игровом клубе <a href="https://vk.com/gamehousse?from=search">Game House</a>. В организации принимали участие ребята из проекта <a href="https://vk.com/futureesports35?from=groups">Будущее Киберспорта</a>. Этот турнир стал открытием ИФеста! Команды демонстрировали слаженную работу и тактическое взаимодействие.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Команда</th><th>Состав</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>ArseD</td><td>Разомаскин Ярослав, Парнов Кирилл</td></tr>
+              <tr><td>2</td><td>VNTP</td><td>Веселов Кирилл, Белозёров Андрей</td></tr>
+              <tr><td>3</td><td>ruthless</td><td>Форкаш Савелий, Макаров Дмитрий</td></tr>
+            </tbody>
+          </table>
+          <div class="participant-comments">
+            <h5>Комментарии участников:</h5>
+            <div class="comment"><div class="comment-author">Разомаскин Ярослав</div><p>«Турнир по кс2 прошел отлично, удивлен был тем, что составлена понятная турнирная сетка, было выбрано хорошее место с комфортным железом для игры, были отличные сервера для игр. Все игроки были +- одного уровня игры, а значит турнир был не простым, это добавляет дух соревновательства.»</p></div>
+            <div class="comment"><div class="comment-author">Новиков Никита</div><p>«Один позитив!!! Хочу выразить огромное спасибо организаторам!!!»</p></div>
+          </div>
+          <div class="photo-gallery">
+            <div class="photo-item"><img src="https://sun9-60.userapi.com/impg/pyDSq7710NOJ6DM1jOUL_VnBpbkpKFArlSTliw/a_JdB65RTKY.jpg?size=1280x853&quality=95&sign=995fb8a35ffe6a5605e753f627bc518d&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-25.userapi.com/impg/hO2znJXO02nLGyS9PucyHPTMzEbzFIay1bCjXQ/f81snvIS7G4.jpg?size=1280x853&quality=95&sign=a6bcdbfd9469b49c809352e1d018b121&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-50.userapi.com/impg/GBZCMmfI-VUxvaqK8naGOnJeRo0ggaHfOFXmGw/D5yqpazDwa0.jpg?size=1280x853&quality=95&sign=895d88e266c8cbc1109dda6863481227&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-31.userapi.com/impg/qIQzMcsN6-o6m5vb5BGOH9gcTEFB4VjC1U4qPQ/XbiEr4zUtn8.jpg?size=1280x853&quality=95&sign=0f11cc1fe1c13d463a2da54c15bc457f&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-30.userapi.com/impg/CHUSYkCuyPOjiC-pWn_u1j3NfcQoKtL97glxZg/6gHV-RFSlcU.jpg?size=1280x853&quality=95&sign=c2c92a6325691d4d40f2fa767688ee25&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+          </div>
+          <a href="https://vk.com/album-226292384_305380428" class="content-btn" target="_blank" rel="noopener">Смотреть альбом</a>
+        </div>
+
+        <div class="discipline" id="dota2-2025">
+          <h4 class="discipline-title">Dota 2 (5 на 5)</h4>
+          <div class="discipline-meta"><span>📅 10–11 мая 2025</span><span>📍 онлайн</span><span>👥 5 команд</span></div>
+          <p>Классический турнир по Dota 2 с полным набором героев и стандартными правилами. Особенно зрелищными получились финальные матчи.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Команда</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Talents</td></tr>
+              <tr><td>2</td><td>Подпивасники</td></tr>
+              <tr><td>3</td><td>Mazut</td></tr>
+            </tbody>
+          </table>
+          <div class="participant-comments">
+            <h5>Комментарии участников:</h5>
+            <div class="comment"><p>«Всё отлично. Хотелось бы после игр (участвовал в турнире по доте) иметь возможность посмотреть записи игр. Также многие знакомые хотели смотреть игры на трансляции, поэтому и её организовать было бы классно. Ну и более частые турниры, просто ради интереса и соревнований самих по себе.»</p></div>
+          </div>
+          <h5>Награждение:</h5>
+          <div class="photo-gallery">
+            <div class="photo-item"><picture><source srcset="img/дота2-1место.webp" type="image/webp"><img src="img/дота2-1место.jpg" alt="Победитель турнира по Dota 2" width="1000" height="752" loading="lazy"></picture></div>
+            <div class="photo-item"><picture><source srcset="img/дота2-2место.webp" type="image/webp"><img src="img/дота2-2место.jpg" alt="Второе место турнира по Dota 2" width="1000" height="746" loading="lazy"></picture></div>
+            <div class="photo-item"><picture><source srcset="img/дота2-3место.webp" type="image/webp"><img src="img/дота2-3место.jpg" alt="Третье место турнира по Dota 2" width="1000" height="744" loading="lazy"></picture></div>
+          </div>
+        </div>
+
+        <div class="discipline" id="minecraft-2025">
+          <h4 class="discipline-title">Майнкрафт (Битва в бедроковой коробке)</h4>
+          <div class="discipline-meta"><span>📅 14 мая 2025</span><span>📍 онлайн</span><span>👥 10 участников</span></div>
+          <p>Необычный турнир в режиме «Битва в бедроковой коробке», где игроки соревновались в скорости, тактике и смекалке.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Команда</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Кораблёв Артём</td></tr>
+              <tr><td>2</td><td>Воробьёв Павел</td></tr>
+              <tr><td>3</td><td>Савельева Кира</td></tr>
+            </tbody>
+          </table>
+          <div class="photo-gallery">
+            <div class="photo-item"><picture><source srcset="img/майн-турик1.webp" type="image/webp"><img src="img/майн-турик1.jpg" alt="Фото с турнира по Майнкрафту" width="900" height="562" loading="lazy"></picture></div>
+            <div class="photo-item"><picture><source srcset="img/майн-турик2.webp" type="image/webp"><img src="img/майн-турик2.jpg" alt="Фото с турнира по Майнкрафту" width="900" height="562" loading="lazy"></picture></div>
+            <div class="photo-item"><picture><source srcset="img/майн-турик3.webp" type="image/webp"><img src="img/майн-турик3.jpg" alt="Фото с турнира по Майнкрафту" width="900" height="562" loading="lazy"></picture></div>
+            <div class="photo-item"><picture><source srcset="img/майн-турик4.webp" type="image/webp"><img src="img/майн-турик4.jpg" alt="Фото с турнира по Майнкрафту" width="900" height="562" loading="lazy"></picture></div>
+          </div>
+        </div>
+
+        <div class="discipline" id="tetris-2025">
+          <h4 class="discipline-title">Тетрис (1 на 1)</h4>
+          <div class="discipline-meta"><span>📅 16 мая 2025</span><span>📍 очно</span><span>👥 8 участников</span></div>
+          <p>Повторный турнир по Тетрису после успеха в прошлом году. Участники показали ещё более высокий уровень мастерства.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Игрок</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Михлин Андрей</td></tr>
+              <tr><td>2</td><td>Еленников Григорий</td></tr>
+              <tr><td>3</td><td>Разомаскин Ярослав</td></tr>
+            </tbody>
+          </table>
+          <div class="participant-comments">
+            <h5>Комментарии участников:</h5>
+            <div class="comment"><div class="comment-author">Разомаскин Ярослав</div><p>«Турнир по тетрису прошел тоже хорошо, порадовало помещение и компьютеры. Из минусов только количество участников, а следовательно длительность этого турнира. Порадовало, что игроки также были не из простых, а значит на турниры в ИгроФабрику приходят скилловые участники.»</p></div>
+            <div class="comment"><div class="comment-author">Анишин Егор</div><p>«Все хорошо, жду турнир по brawlhalla»</p></div>
+          </div>
+          <div class="photo-gallery">
+            <div class="photo-item"><img src="https://sun9-13.userapi.com/impg/-uTS0sqXXbkeHo8RRhii90oQLFxhJpREndmPSQ/vq8KyKTpV0g.jpg?size=1280x1280&quality=95&sign=59c3ed34408d3ece9de2ce8678fc06ce&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-61.userapi.com/impg/uCXOAoBIrLXmUkWboN-AQo70ohRuAzJhkGPKuA/Rj4LPjOLL8c.jpg?size=1280x1280&quality=95&sign=edffbc5f9da298efcd63fde41782f48a&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-13.userapi.com/impg/xgx1APcvDhUO9BT0CU4sUnqu3O5GDW6F86isIw/pkp122D2dSw.jpg?size=1280x1280&quality=95&sign=3bb02d4691ee92ab242aa223a6a2ecf9&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-76.userapi.com/impg/JNiKUCQNX2I6oOFM68dq_bvwm43nT5sWLW7W5A/RyS37myJdCk.jpg?size=1280x1280&quality=95&sign=a1c6d76ce5d4dc0cd03dfbf9ae6d0085&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-32.userapi.com/impg/RBlkmdWkbx8suPMRqYFvxFdeWbwAgBNt1GP1UA/hQOAsLM0M8Y.jpg?size=1280x1280&quality=95&sign=e1213cc7f22c7cee228f3153236724cc&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-69.userapi.com/impg/92F5a-ze2ImYTdwKTSW_BN24QHhoQ9zjAyoQYw/W94x4MNt304.jpg?size=1280x960&quality=95&sign=7a08d2c3e37672a42ed7236d9fa10875&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+          </div>
+        </div>
+        <div class="event-summary">
+          <h4>Итоги фестиваля</h4>
+          <p>ИФест 2025 побил все рекорды по количеству участников и зрителей. Dota 2 и CS2 традиционно привлекли наибольшее внимание киберспортивных фанатов. Тетрис позволил понастальгировать. Турнир по Minecraft прошёл не без проблем, но мы учтём все недочёты и в следующий раз проработаем их заранее. Спасибо всем за участие!</p>
+        </div>
+      </article>
+
+      <article class="event-card" id="ifest-2024">
+        <div class="event-header">
+          <h3 class="event-title">ИФест 2024</h3>
+          <div class="event-meta"><span class="meta-item">📅 18 ноября – 15 декабря 2024</span><span class="meta-item">👥 35 участников</span></div>
+        </div>
+        <div class="discipline">
+          <h4 class="discipline-title">Тетрис (1 на 1)</h4>
+          <div class="discipline-meta"><span>📅 18 ноября 2024</span><span>📍 очно</span><span>👥 10 участников</span></div>
+          <p>Классический турнир по Тетрису в формате 1 на 1 послужил началом ИФеста. Участники соревновались в скорости и стратегии, используя современные техники «T-Spin» и другие продвинутые механики.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Игрок</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Михлин Андрей</td></tr>
+              <tr><td>2</td><td>Меньшенин Егор</td></tr>
+              <tr><td>3</td><td>Овчинников Максим</td></tr>
+            </tbody>
+          </table>
+          <div class="participant-comments">
+            <h5>Комментарии участников:</h5>
+            <div class="comment"><p>«Один из матчей был очень напряжённым. Мой соперник выдал серию из 5 T-Spin Triple подряд, но мне удалось удержаться и переломить ход игры в решающий момент.»</p></div>
+          </div>
+          <div class="photo-gallery">
+            <div class="photo-item"><picture><source srcset="img/tetris.webp" type="image/webp"><img src="img/tetris.jpg" alt="Фото с турнира по Тетрису" width="1000" height="750" loading="lazy"></picture></div>
+            <div class="photo-item"><img src="https://sun9-11.userapi.com/impg/LxWd9W0-1Y965xrXsaiIxuw6dG5MNRAQZvUeQA/0sfc6QRB7CI.jpg?size=1280x960&quality=95&sign=17c4a42cb042b17d88c98a285f7619a9&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-50.userapi.com/impg/mIQ6EgzwA5MUxd0lYdZDHm7_dd8NeCLrqT48gQ/tu4OmIRoFLs.jpg?size=1280x960&quality=95&sign=c20f1127d89a95acf13611e71b791542&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-11.userapi.com/impg/D8Z3g0AzSwPeHPV9MfCNbmKDLDW6gBPbygv-zA/Fxhx6UfuEdQ.jpg?size=1280x960&quality=95&sign=886c47ac95feac538af0fa5ff4708bae&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-20.userapi.com/impg/lcrjiunU1Dmvnr3nWUPvWxGCaeIy0c3d7fnVLw/UasBSTcnM3s.jpg?size=1280x960&quality=95&sign=6850b1753135ab27f761a5a4a8cfcb2b&type=album" alt="Фото с турнира по Тетрису" loading="lazy"></div>
+          </div>
+          <a href="https://vk.com/igrofabrika_chsu?from=groups&z=album-220258902_304984372" class="content-btn" target="_blank" rel="noopener">Смотреть альбом</a>
+        </div>
+        <div class="discipline">
+          <h4 class="discipline-title">CS2 (1 на 1)</h4>
+          <div class="discipline-meta"><span>📅 22 ноября 2024</span><span>📍 очно</span><span>👥 18 участников</span></div>
+          <p>Турнир по CS2 в необычном формате 1 на 1 на карте Aim_map. Участники соревновались в точности стрельбы и тактике дуэлей.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Игрок</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Веселов Кирилл</td></tr>
+              <tr><td>2</td><td>Смирнов Алексей</td></tr>
+              <tr><td>3</td><td>Петухов Илья</td></tr>
+            </tbody>
+          </table>
+          <div class="participant-comments">
+            <h5>Комментарии участников:</h5>
+            <div class="comment"><p>«Отличный турнир! Организация на высшем уровне, пинг был стабильным, без лагов. Соперники попались сильные, было чему поучиться — буду готовиться лучше и ждать реванша!»</p></div>
+            <div class="comment"><p>«Интересный опыт, но хотелось бы больше раундов или double-elimination формат. В некоторых матчах не хватало баланса, но в целом атмосфера была дружелюбной. Спасибо за ивент!»</p></div>
+          </div>
+          <div class="photo-gallery">
+            <div class="photo-item"><img src="https://sun9-32.userapi.com/impg/QdKuHMMY6f73_spE1U-RYpFzEpSSFQ0PWaoaKQ/0KXGCUdaAZE.jpg?size=1280x853&quality=96&sign=00b8b6b46b417b101a7680fccea8507d&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-55.userapi.com/impg/sugXm3AysXgjbCR9wbpVRdrM1HVcVdplvB-20Q/-iSiSQq37XI.jpg?size=1280x853&quality=96&sign=7486d6365fac123441c6fbe42de5523d&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-74.userapi.com/impg/oKlflkyXZTSOg8ttfhHNPcJm1Z-RqtTqGNFLRg/ZeC8VWm4ask.jpg?size=1280x851&quality=96&sign=8def60684ecd36aa5da86e9e127192b9&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-49.userapi.com/impg/dQNdmaJ53yLxFwElmLGM2YDcwtfY9ivo3woW1Q/4KNg5rSUv60.jpg?size=1280x853&quality=96&sign=d55780c7cbdf7e4db7f9c236f3c0e9f0&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-21.userapi.com/impg/TFl9Tquah88QycOb5RYP1kkCLa0-nJ91FsDbbg/AfK11S6QzZs.jpg?size=1280x853&quality=96&sign=6096048289e486d6fd194b2f9d23cd1e&type=album" alt="Фото с турнира по CS2" loading="lazy"></div>
+          </div>
+        </div>
+        <div class="discipline">
+          <h4 class="discipline-title">League of Legends (6 на 6)</h4>
+          <div class="discipline-meta"><span>📅 22 сентября 2024</span><span>📍 онлайн</span><span>👥 12 команд</span></div>
+          <p>Нестандартный турнир по LoL с увеличенным составом команд. Уникальные стратегии и неожиданные пики героев сделали этот турнир особенно зрелищным.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Команда</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Immortal sinners</td></tr>
+              <tr><td>2</td><td>ЛЕСМЕХ</td></tr>
+              <tr><td>3</td><td>Untitled</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="event-summary">
+          <h4>Итоги фестиваля</h4>
+          <p>ИФест 2024 стал самым масштабным киберспортивным событием года. Особенно зрелищными получились матчи по League of Legends в нестандартном формате 6 на 6. Турнир по Тетрису собрал рекордное количество респектов 🔥</p>
+        </div>
+      </article>
+
+      <article class="event-card omut" id="omut-autumn-2024">
+        <div class="event-header">
+          <h3 class="event-title">ОМУТ Осень 2024</h3>
+          <div class="event-meta"><span class="meta-item">📅 15–17 ноября 2024</span><span class="meta-item">👥 90 участников</span></div>
+        </div>
+        <div class="discipline">
+          <h4 class="discipline-title">Геймджем «ComeBack»</h4>
+          <div class="discipline-meta"><span>📅 25–27 октября 2024</span><span>👥 5 команд</span></div>
+          <p>Тема этого года — «ComeBack — возвращение». Участники должны были создать игру за 70 часов и презентовать результат работы перед жюри. В составе жюри было несколько представителей предприятия Северсталь.</p>
+          <h5>Результаты:</h5>
+          <table class="results-table">
+            <thead><tr><th>Место</th><th>Команда</th><th>Состав</th><th>Проект</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Фабрика смеха</td><td>Поляков Владислав</td><td>«Double Jump»</td></tr>
+              <tr><td>2</td><td>Грибы</td><td>Колодко Александр, Войнов Даниил</td><td>«Мэрио»</td></tr>
+              <tr><td>3</td><td>Pixel Pioneers</td><td>Казнин Александр, Быстрова Полина, Богданов Ренат, Бургин Игнат</td><td>«Relax Bird»</td></tr>
+            </tbody>
+          </table>
+          <div class="participant-comments">
+            <h5>Комментарии участников:</h5>
+            <div class="comment"><p>«70 часов чистого адреналина! Тема "Comeback" вдохновила на неожиданные решения — столько крутых идей и драйва в одном месте. Организация топ, хотя спать всё равно не удалось. Жду следующего джема!»</p></div>
+            <div class="comment"><p>«Лучший способ провести выходные — заставить героя вернуться из небытия за 70 часов! Комьюнити, мемы, горящие дедлайны и невероятная поддержка друг друга. Это был не джем, а эпичное возвращение в геймдев!»</p></div>
+            <div class="comment"><p>«Наша тима буквально пережила "Comeback" — за 20 часов до дедлайна всё пошло не так, но мы собрались и выдали годноту! 70 часов — испытание на прочность, но ради таких моментов стоит участвовать.»</p></div>
+          </div>
+          <div class="photo-gallery">
+            <div class="photo-item"><img src="https://sun9-77.userapi.com/impg/6DkdKKp1S0sFny8Qap5u7ewk4xr80LJrYP_UQw/S9H6x1G-u9c.jpg?size=1280x721&quality=95&sign=f4fa5421e8bc975d96ae023863c1ecc3&type=album" alt="Фото с геймджема" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-2.userapi.com/impg/uzN1CQRp3vdOt5qYb1y4BYCIS74vRtEtR6wLkQ/7DAgzOtfhWk.jpg?size=1280x721&quality=95&sign=eefee7dc3551102cb60866357cba3daa&type=album" alt="Фото с геймджема" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-63.userapi.com/impg/x8jmALkl6TnYKq4dypayod9fY5YKlXjD8UQjLQ/np3i7JiCJOI.jpg?size=1280x721&quality=95&sign=392eab708bb4cfd257810a08bd6bb546&type=album" alt="Фото с геймджема" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-33.userapi.com/impg/wsEWzlL9w85U-BinYeOeFrd2hhQN9n1FBIOeOw/l5EWJDQBr3k.jpg?size=1280x721&quality=95&sign=65eb971e395a86a1cc02a9c4e6fe95c2&type=album" alt="Фото с геймджема" loading="lazy"></div>
+            <div class="photo-item"><img src="https://sun9-3.userapi.com/impg/1_cmnYspqbceOZAVu07EqO9EeLTOMXR1VWZihQ/yI6i-W5CTDY.jpg?size=1280x721&quality=95&sign=a6780dfa9c74bc54253765449c2144a7&type=album" alt="Фото с геймджема" loading="lazy"></div>
+          </div>
+          <a href="https://vk.com/igrofabrika_chsu?from=groups&z=album-220258902_304722009" class="content-btn" target="_blank" rel="noopener">Смотреть альбом</a>
+        </div>
+        <div class="event-summary">
+          <h4>Итоги форума</h4>
+          <p>ОМУТ Осень 2024 прошёл в офлайн-формате, что позволило участникам лучше взаимодействовать. Было представлено 18 проектов, многие из которых демонстрировали инновационные подходы к эволюции игровых механик.</p>
+        </div>
+      </article>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <img src="img/логоИФ.png" alt="" width="30" height="30">
+        <span>ИгроФабрика</span>
+      </div>
+      <div class="footer-social">
+          <a href="https://vk.com/igrofabrika_chsu?from=groups" class="social-icon" aria-label="ВКонтакте" target="_blank" rel="noopener">
+            <svg class="social-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.162 18.994c.609 0 .858-.406.851-.915-.031-1.917.714-2.949 2.059-1.604 1.488 1.488 1.796 2.519 3.603 2.519h3.2c.808 0 1.126-.26 1.126-.668 0-.863-1.421-2.386-2.625-3.504-1.686-1.565-1.765-1.602-.313-3.486 1.801-2.339 4.157-5.336 2.073-5.336h-3.981c-.772 0-.828.435-1.103 1.083-.995 2.347-2.886 5.387-3.604 4.922-.751-.485-.407-2.406-.35-5.261.015-.754.011-1.271-1.141-1.539-.629-.145-1.241-.205-1.809-.205-2.273 0-3.841.953-2.95 1.119 1.571.293 1.42 3.692 1.054 5.16-.638 2.556-3.036-2.024-4.035-4.305-.241-.548-.315-.974-1.175-.974h-3.255c-.492 0-.787.16-.787.516 0 .602 2.96 6.72 5.786 9.77 2.756 2.975 5.48 2.708 7.376 2.708z"/></svg>
+          </a>
+          <a href="https://www.youtube.com/@igrofabrika" class="social-icon" aria-label="YouTube" target="_blank" rel="noopener">
+            <svg class="social-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10,15L15.19,12L10,9V15M21.56,7.17C21.69,7.64 21.78,8.27 21.84,9.07C21.91,9.87 21.94,10.56 21.94,11.16L22,12C22,14.19 21.84,15.8 21.56,16.83C21.31,17.73 20.73,18.31 19.83,18.56C19.36,18.69 18.5,18.78 17.18,18.84C15.88,18.91 14.69,18.94 13.59,18.94L12,19C7.81,19 5.2,18.84 4.17,18.56C3.27,18.31 2.69,17.73 2.44,16.83C2.31,16.36 2.22,15.73 2.16,14.93C2.09,14.13 2.06,13.44 2.06,12.84L2,12C2,9.81 2.16,8.2 2.44,7.17C2.69,6.27 3.27,5.69 4.17,5.44C4.64,5.31 5.5,5.22 6.82,5.16C8.12,5.09 9.31,5.06 10.41,5.06L12,5C16.19,5 18.8,5.16 19.83,5.44C20.73,5.69 21.31,6.27 21.56,7.17Z"/></svg>
+          </a>
+          <a href="https://www.twitch.tv/igrofabrika_chgu" class="social-icon" aria-label="Twitch" target="_blank" rel="noopener">
+            <svg class="social-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11.64 5.93H13.07V10.21H11.64M15.57 5.93H17V10.21H15.57M7 2L3.43 5.57V18.43H7.71V22L11.29 18.43H14.14L20.57 12V2M19.14 11.29L16.29 14.14H13.43L10.93 16.64V14.14H7.71V3.43H19.14Z"/></svg>
+          </a>
+          <a href="mailto:igrofabrika.chsu@gmail.com" class="social-icon" aria-label="Почта">
+            <svg class="social-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6M20 6L12 11L4 6H20M20 18H4V8L12 13L20 8V18Z"/></svg>
+          </a>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-info">
+        <p class="footer-copyright">© <span id="footer-year">2026</span> студенческое объединение ЧГУ «ИгроФабрика». Все права защищены.</p>
+        <p class="footer-address">Череповецкий государственный университет, Советский проспект, 8</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
