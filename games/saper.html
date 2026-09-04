@@ -20,7 +20,7 @@
   --muted:#8A93B5;
   --line:rgba(255,255,255,.07);
   --gap:3px;
-  --cell:32px;
+  --cell:40px;
   --ease:cubic-bezier(.2,.7,.3,1);
 }
 *{box-sizing:border-box}
@@ -38,7 +38,7 @@ body{
   -webkit-font-smoothing:antialiased;
   touch-action:manipulation;
 }
-.app{max-width:1100px;margin:0 auto;padding:18px 18px 34px;display:flex;flex-direction:column;gap:13px;min-height:100vh}
+.app{max-width:1100px;margin:0 auto;padding:14px 18px 20px;display:flex;flex-direction:column;gap:9px;min-height:100vh}
 
 /* ---------- header ---------- */
 .top{display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap}
@@ -51,7 +51,11 @@ body{
 }
 .brand p{margin:0;color:var(--muted);font-size:13px;white-space:nowrap}
 @media(max-width:760px){.brand p{display:none}}
-.top-actions{display:flex;gap:8px;align-items:center;margin-left:auto}
+.top-actions{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap}
+@media(max-width:420px){
+  .top-actions{margin-left:0;width:100%}
+  .top-actions .btn.primary{flex:1;justify-content:center}
+}
 
 /* ---------- controls ---------- */
 .btn{
@@ -97,6 +101,7 @@ body{
   .console>*{padding:1px 12px}
   .console>*+*{box-shadow:none}
   .tools{margin-left:0;width:100%;padding-top:4px}
+  .app{padding-left:8px;padding-right:8px}
 }
 
 /* ---------- board ---------- */
@@ -107,6 +112,7 @@ body{
     rgba(8,11,20,.62);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 40px 90px -60px rgba(123,97,255,.75);
 }
+@media(max-width:640px){ .board-wrap{padding:8px} }
 .board{
   display:grid;gap:var(--gap);
   grid-template-columns:repeat(var(--w),var(--cell));
@@ -175,48 +181,71 @@ body{
 @media (prefers-reduced-motion:reduce){
   *,*::after{animation-duration:.001ms!important;animation-delay:0ms!important;transition-duration:.001ms!important}
 }
+
+/* ---------- pause overlay ---------- */
+.pause-overlay{
+  position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+  background:rgba(4,6,14,.82);backdrop-filter:blur(8px);border-radius:22px;
+}
+.pause-overlay.on{display:flex;animation:fade .2s var(--ease)}
+.pause-card{text-align:center;padding:20px}
+.pause-card h2{font-family:'Unbounded',sans-serif;font-size:22px;margin:0 0 16px;letter-spacing:-.02em}
+.btn.toggled{border-color:rgba(49,225,196,.6);color:var(--sonar);background:rgba(49,225,196,.08)}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top">
     <div class="brand">
-      <h1>Сапёр</h1>
-      <p>Классика: цифры, флаги и немного удачи</p>
+      <h1 data-i18n="title">Сапёр</h1>
+      <p data-i18n="subtitle">Классика: цифры, флаги и немного удачи</p>
     </div>
     <div class="seg" id="diffs" role="group" aria-label="Сложность">
-      <button data-d="easy" aria-pressed="false" title="9×9, 10 мин">Лёгкий</button>
-      <button data-d="normal" aria-pressed="true" title="16×16, 40 мин">Средний</button>
-      <button data-d="hard" aria-pressed="false" title="24×20, 99 мин">Сложный</button>
+      <button data-d="easy" aria-pressed="false" title="9×9, 10 мин" data-i18n="diffEasy">Лёгкий</button>
+      <button data-d="normal" aria-pressed="true" title="16×16, 40 мин" data-i18n="diffNormal">Средний</button>
+      <button data-d="hard" aria-pressed="false" title="24×20, 99 мин" data-i18n="diffHard">Сложный</button>
     </div>
     <div class="top-actions">
+      <button class="btn icon" id="langBtn" aria-label="Language" title="RU / EN">RU</button>
+      <button class="btn icon" id="soundBtn" aria-label="Sound">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M17 8a5 5 0 0 1 0 8"/></svg>
+      </button>
+      <button class="btn icon" id="pauseBtn" aria-label="Пауза" title="Пауза (P / Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 5v14M16 5v14"/></svg>
+      </button>
       <button class="btn icon" id="help" aria-label="Как играть">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.5"/><path d="M12 17h.01"/></svg>
       </button>
       <button class="btn primary" id="restart">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
-        Заново
+        <span data-i18n="restart">Заново</span>
       </button>
     </div>
   </div>
 
   <div class="console">
-    <div class="stat"><span class="k">Мины</span><span class="v" id="mineCount">0</span></div>
-    <div class="stat"><span class="k">Время</span><span class="v" id="clock">0:00</span></div>
-    <div class="stat"><span class="k">Рекорд</span><span class="v" id="best">—</span></div>
+    <div class="stat"><span class="k" data-i18n="statMines">Мины</span><span class="v" id="mineCount">0</span></div>
+    <div class="stat"><span class="k" data-i18n="statTime">Время</span><span class="v" id="clock">0:00</span></div>
+    <div class="stat"><span class="k" data-i18n="statBest">Рекорд</span><span class="v" id="best">—</span></div>
     <div class="tools">
       <button class="btn" id="mode" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 21V4h9l-1.5 3L15 10H6"/></svg>
-        Режим: открыть
+        <span id="modeLabel" data-i18n="modeOpen">Режим: открыть</span>
       </button>
     </div>
   </div>
 
   <div class="board-wrap" id="boardWrap">
     <div class="board" id="board" tabindex="0" role="grid" aria-label="Игровое поле"></div>
+    <div class="pause-overlay" id="pauseOverlay">
+      <div class="pause-card">
+        <h2 data-i18n="pausedTitle">Пауза</h2>
+        <button class="btn primary" id="resumeBtn" data-i18n="resume">Продолжить</button>
+      </div>
+    </div>
   </div>
 
-  <p class="hint" id="hint">Первый клик всегда безопасен.</p>
+  <p class="hint" id="hint" data-i18n="hintStart">Первый клик всегда безопасен.</p>
 </div>
 
 <div class="scrim" id="scrim">
@@ -246,6 +275,95 @@ let difficulty = 'normal';
 let flagMode = false;
 let cursor = 0;
 let cells = [];
+
+/* ---------------- Локализация ---------------- */
+const STR = {
+  ru:{
+    title:"Сапёр", subtitle:"Классика: цифры, флаги и немного удачи",
+    diffEasy:"Лёгкий", diffNormal:"Средний", diffHard:"Сложный",
+    restart:"Заново", statMines:"Мины", statTime:"Время", statBest:"Рекорд",
+    modeOpen:"Режим: открыть", modeFlag:"Режим: флаг",
+    hintStart:"Первый клик всегда безопасен.",
+    pausedTitle:"Пауза", resume:"Продолжить",
+    winTitle:"Поле разминировано", winBody:"Отличная работа — все безопасные клетки открыты.",
+    lossTitle:"Бум", lossBody:"Наступил на мину. Бывает — попробуй ещё раз.",
+    again:"Ещё раз", seeBoard:"Посмотреть поле", ok:"Понятно",
+    kOpen:"Открыто", kMinesLbl:"Мины", kTime:"Время",
+    helpTitle:"Как играть",
+    helpP1:"Классический сапёр: под клетками спрятаны мины, а цифры показывают, сколько мин среди соседей.",
+    helpP2:"Управление: левая кнопка / тап — открыть клетку, правая кнопка — поставить флаг, двойной клик по открытой цифре — аккорд (открыть соседей, если флагов уже достаточно). На телефоне: тап — открыть или флаг (смотря какой режим выбран кнопкой сверху), долгий тап — флаг.",
+    helpP3:"Первый клик всегда безопасен и никогда не окажется миной.",
+    helpP4:"Пауза — кнопкой сверху или клавишей P / Esc.",
+  },
+  en:{
+    title:"Minesweeper", subtitle:"Classic: numbers, flags and a bit of luck",
+    diffEasy:"Easy", diffNormal:"Normal", diffHard:"Hard",
+    restart:"Restart", statMines:"Mines", statTime:"Time", statBest:"Best",
+    modeOpen:"Mode: open", modeFlag:"Mode: flag",
+    hintStart:"The first click is always safe.",
+    pausedTitle:"Paused", resume:"Resume",
+    winTitle:"Field cleared", winBody:"Great work — every safe cell is open.",
+    lossTitle:"Boom", lossBody:"You hit a mine. Happens — give it another go.",
+    again:"Again", seeBoard:"View board", ok:"Got it",
+    kOpen:"Opened", kMinesLbl:"Mines", kTime:"Time",
+    helpTitle:"How to play",
+    helpP1:"Classic minesweeper: mines are hidden under the cells, and numbers show how many mines are among the neighbors.",
+    helpP2:"Controls: left click / tap — open a cell, right click — place a flag, double-click an open number — chord (opens neighbors once enough flags are placed). On phone: tap opens or flags depending on the mode button above; long-press places a flag.",
+    helpP3:"The first click is always safe and can never be a mine.",
+    helpP4:"Pause — with the button above, or the P / Esc key.",
+  }
+};
+let LANG = localStorage.getItem('ifab:lang') || 'ru';
+const t = k => (STR[LANG] && STR[LANG][k]) || STR.ru[k] || k;
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(node=>{ node.textContent = t(node.dataset.i18n); });
+  el('langBtn').textContent = LANG.toUpperCase();
+  const modeLbl = el('modeLabel'); if(modeLbl) modeLbl.textContent = t(flagMode?'modeFlag':'modeOpen');
+  if(G) loadBest();
+}
+function setLang(l){ LANG = l; localStorage.setItem('ifab:lang', l); applyLang(); }
+
+/* ---------------- Звук ---------------- */
+const Snd = {
+  on: (localStorage.getItem('saper:sound') !== '0'),
+  ctx:null,
+  boot(){ if(!this.ctx){ try{ this.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } },
+  tone(freq, dur=0.09, type='sine', vol=0.16, delay=0){
+    if(!this.on) return;
+    this.boot(); if(!this.ctx) return;
+    const t0 = this.ctx.currentTime + delay;
+    const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0+0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0008, t0+dur);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(t0); osc.stop(t0+dur+0.02);
+  },
+  open(){ this.tone(520,0.07,'square',0.1); },
+  flag(){ this.tone(700,0.06,'triangle',0.12); },
+  unflag(){ this.tone(360,0.06,'triangle',0.1); },
+  chord(){ this.tone(620,0.05,'square',0.09); this.tone(780,0.05,'square',0.07,0.03); },
+  win(){ [523,659,784,1047].forEach((f,i)=>this.tone(f,0.16,'triangle',0.14,i*0.09)); },
+  lose(){ this.tone(160,0.35,'sawtooth',0.18); this.tone(90,0.4,'sawtooth',0.14,0.05); },
+  toggle(){ this.on=!this.on; localStorage.setItem('saper:sound', this.on?'1':'0'); syncSoundBtn(); }
+};
+function syncSoundBtn(){
+  const b = el('soundBtn');
+  b.classList.toggle('toggled', Snd.on);
+  b.setAttribute('aria-pressed', String(Snd.on));
+  b.title = Snd.on ? 'Sound: on' : 'Sound: off';
+}
+
+/* ---------------- Пауза ---------------- */
+function togglePause(){
+  if(!G || G.over) return;
+  G.paused = !G.paused;
+  el('pauseOverlay').classList.toggle('on', G.paused);
+  if(G.paused && G.started){ G.pausedAt = Date.now(); }
+  else if(G.started){ G.startedAt += Date.now() - G.pausedAt; }
+}
 
 /* ---------------- storage ---------------- */
 const Store = {
@@ -291,13 +409,15 @@ function newGame(){
     openCount:0, flagCount:0,
     started:false, over:false, won:false,
     startedAt:0, elapsed:0,
+    paused:false, pausedAt:0,
   };
   cursor=0;
   renderBoard();
   fitBoard();
   el('clock').textContent = '0:00';
   updateHud();
-  setHint('Первый клик всегда безопасен.');
+  el('pauseOverlay').classList.remove('on');
+  setHint(t('hintStart'));
   loadBest();
 }
 
@@ -320,10 +440,13 @@ function renderBoard(){
 
 function fitBoard(){
   const gap = 3;
-  const byWidth = Math.floor((wrapEl.clientWidth - 34 - (W-1)*gap) / W);
-  const room = window.innerHeight - wrapEl.getBoundingClientRect().top - 82;
-  const byHeight = Math.floor((room - 34 - (H-1)*gap) / H);
-  const size = Math.max(16, Math.min(byWidth, byHeight, 40));
+  const wrapStyle = getComputedStyle(wrapEl);
+  const wrapPad = (parseFloat(wrapStyle.paddingLeft)||0) + (parseFloat(wrapStyle.paddingRight)||0) + 2;
+  const wrapPadV = (parseFloat(wrapStyle.paddingTop)||0) + (parseFloat(wrapStyle.paddingBottom)||0) + 2;
+  const byWidth = Math.floor((wrapEl.clientWidth - wrapPad - (W-1)*gap) / W);
+  const room = window.innerHeight - wrapEl.getBoundingClientRect().top - 64;
+  const byHeight = Math.floor((room - wrapPadV - (H-1)*gap) / H);
+  const size = Math.max(16, Math.min(byWidth, byHeight, 56));
   boardEl.style.setProperty('--cell', size + 'px');
 }
 window.addEventListener('resize', () => { if(G) fitBoard(); });
@@ -357,7 +480,7 @@ function updateHud(){
 function setHint(text){ el('hint').innerHTML = text; }
 
 function tick(){
-  if(!G.started || G.over) return;
+  if(!G || !G.started || G.over || G.paused) return;
   G.elapsed = Math.floor((Date.now() - G.startedAt)/1000);
   el('clock').textContent = fmt(G.elapsed);
 }
@@ -411,7 +534,7 @@ function startClock(){
 }
 
 function reveal(i){
-  if(G.over || G.revealed[i] || G.flag[i]) return;
+  if(G.paused || G.over || G.revealed[i] || G.flag[i]) return;
 
   if(!G.mines){
     startClock();
@@ -423,13 +546,14 @@ function reveal(i){
   const opened = floodOpen(i);
   for(const idx of opened) paintCell(idx);
   for(const idx of opened) for(const nb of NB[idx]) if(!G.revealed[nb]) paintCell(nb);
+  if(opened.length) Snd.open();
 
   if(G.openCount >= SIZE - M){ win(); return; }
   updateHud();
 }
 
 function chord(i){
-  if(!G.revealed[i] || G.num[i] <= 0) return;
+  if(G.paused || G.over || !G.revealed[i] || G.num[i] <= 0) return;
   let flags = 0;
   const targets = [];
   for(const nb of NB[i]){
@@ -437,16 +561,18 @@ function chord(i){
     else if(!G.revealed[nb]) targets.push(nb);
   }
   if(flags !== G.num[i] || !targets.length) return;
-  for(const t of targets){
+  Snd.chord();
+  for(const tg of targets){
     if(G.over) return;
-    reveal(t);
+    reveal(tg);
   }
 }
 
 function toggleFlag(i){
-  if(G.over || G.revealed[i]) return;
+  if(G.paused || G.over || G.revealed[i]) return;
   G.flag[i] = G.flag[i] ? 0 : 1;
   G.flagCount += G.flag[i] ? 1 : -1;
+  G.flag[i] ? Snd.flag() : Snd.unflag();
   paintCell(i);
   updateHud();
 }
@@ -467,6 +593,7 @@ function explode(boomIndex){
     else if(G.flag[i]){ c.classList.add('wrong'); c.innerHTML = SVG_MINE; }
   }
   updateHud();
+  Snd.lose();
   showLoss();
 }
 
@@ -479,6 +606,7 @@ async function win(){
     }
   }
   updateHud();
+  Snd.win();
   showWin();
   const key = bestKey();
   const prev = await Store.get(key);
@@ -489,31 +617,32 @@ async function win(){
 }
 
 function showWin(){
-  openSheet('Поле разминировано', `
+  openSheet(t('winTitle'), `
     <div class="result">
-      <div><span class="k">Время</span><span class="v">${fmt(G.elapsed)}</span></div>
-      <div><span class="k">Мины</span><span class="v">${M}</span></div>
+      <div><span class="k">${t('kTime')}</span><span class="v">${fmt(G.elapsed)}</span></div>
+      <div><span class="k">${t('kMinesLbl')}</span><span class="v">${M}</span></div>
     </div>
-    <p>Отличная работа — все безопасные клетки открыты.</p>
-  `, [{label:'Ещё раз', primary:true, action:newGame}]);
+    <p>${t('winBody')}</p>
+  `, [{label:t('again'), primary:true, action:newGame}]);
 }
 
 function showLoss(){
-  openSheet('Бум', `
-    <p>Наступил на мину. Бывает — попробуй ещё раз.</p>
+  openSheet(t('lossTitle'), `
+    <p>${t('lossBody')}</p>
     <div class="result">
-      <div><span class="k">Открыто</span><span class="v">${G.openCount} / ${SIZE - M}</span></div>
-      <div><span class="k">Время</span><span class="v">${fmt(G.elapsed)}</span></div>
+      <div><span class="k">${t('kOpen')}</span><span class="v">${G.openCount} / ${SIZE - M}</span></div>
+      <div><span class="k">${t('kTime')}</span><span class="v">${fmt(G.elapsed)}</span></div>
     </div>
-  `, [{label:'Ещё раз', primary:true, action:newGame}, {label:'Посмотреть поле', action:closeSheet}]);
+  `, [{label:t('again'), primary:true, action:newGame}, {label:t('seeBoard'), action:()=>{}}]);
 }
 
 function showHelp(){
-  openSheet('Как играть', `
-    <p>Классический сапёр: под клетками спрятаны мины, а цифры показывают, сколько мин среди соседей.</p>
-    <p>Управление: левая кнопка / тап — открыть клетку, правая кнопка — поставить флаг, двойной клик по открытой цифре — аккорд (открыть соседей, если флагов уже достаточно). На телефоне: тап — открыть или флаг (смотря какой режим выбран кнопкой сверху), долгий тап — флаг.</p>
-    <p>Первый клик всегда безопасен и никогда не окажется миной.</p>
-  `, [{label:'Понятно', primary:true, action:closeSheet}]);
+  openSheet(t('helpTitle'), `
+    <p>${t('helpP1')}</p>
+    <p>${t('helpP2')}</p>
+    <p>${t('helpP3')}</p>
+    <p>${t('helpP4')}</p>
+  `, [{label:t('ok'), primary:true, action:()=>{}}]);
 }
 
 function openSheet(title, body, buttons){
@@ -609,10 +738,22 @@ el('mode').onclick = () => {
   flagMode = !flagMode;
   const b = el('mode');
   b.setAttribute('aria-pressed', String(flagMode));
-  b.lastChild.textContent = flagMode ? ' Режим: флаг' : ' Режим: открыть';
+  el('modeLabel').textContent = t(flagMode ? 'modeFlag' : 'modeOpen');
 };
 el('scrim').onclick = e => { if(e.target === el('scrim')) closeSheet(); };
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSheet(); });
+el('pauseBtn').onclick = togglePause;
+el('resumeBtn').onclick = togglePause;
+el('soundBtn').onclick = () => Snd.toggle();
+el('langBtn').onclick = () => setLang(LANG==='ru'?'en':'ru');
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    if(el('scrim').classList.contains('on')){ closeSheet(); return; }
+    togglePause();
+    return;
+  }
+  if((e.key==='p'||e.key==='P') && !el('scrim').classList.contains('on')){ togglePause(); }
+});
+document.addEventListener('visibilitychange', () => { if(document.hidden && G && G.started && !G.over && !G.paused) togglePause(); });
 
 el('diffs').addEventListener('click', e => {
   const btn = e.target.closest('button');
@@ -622,6 +763,8 @@ el('diffs').addEventListener('click', e => {
   newGame();
 });
 
+applyLang();
+syncSoundBtn();
 newGame();
 </script>
 </body>
